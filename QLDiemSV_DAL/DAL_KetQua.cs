@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using QLDiemSV_DTO;
+using System.Globalization;
 
 namespace QLDiemSV_DAL
 {
@@ -8,12 +9,12 @@ namespace QLDiemSV_DAL
         // 1. Lấy danh sách sinh viên CỦA MỘT LỚP CỤ THỂ
         public DataTable GetDS_SinhVienTrongLop(string maLHP)
         {
-            // Join với bảng SinhVien để lấy Họ Tên hiển thị cho dễ nhìn
+            // Sửa LopSinhHoat thành MaLop cho đúng với bảng SinhVien
             string sql = string.Format(@"
-                SELECT k.MSSV, s.HoTen, s.LopSinhHoat, k.MaLHP 
-                FROM KetQua k 
-                JOIN SinhVien s ON k.MSSV = s.MSSV 
-                WHERE k.MaLHP = '{0}'", maLHP);
+        SELECT k.MSSV, s.HoTen, s.MaLop, k.MaLHP 
+        FROM KetQua k 
+        JOIN SinhVien s ON k.MSSV = s.MSSV 
+        WHERE k.MaLHP = '{0}'", maLHP);
             return GetDataTable(sql);
         }
 
@@ -53,13 +54,17 @@ namespace QLDiemSV_DAL
         // 5. Cập nhật điểm số (Lưu điểm)
         public bool CapNhatDiem(string maLHP, string mssv, float cc, float gk, float ck, float tk, string chu)
         {
-            // Lưu ý: SQL lưu số thực dùng dấu chấm, cần format cẩn thận
-            string sql = string.Format(@"
-                UPDATE KetQua 
-                SET DiemChuyenCan = {2}, DiemGiuaKy = {3}, DiemCuoiKy = {4}, 
-                    DiemTongKet = {5}, DiemChu = '{6}'
-                WHERE MaLHP = '{0}' AND MSSV = '{1}'",
+            // Sử dụng CultureInfo.InvariantCulture để đảm bảo số thập phân dùng dấu chấm (.)
+            string sql = string.Format(CultureInfo.InvariantCulture,
+                @"UPDATE KetQua 
+                  SET DiemChuyenCan = {2}, 
+                      DiemGiuaKy = {3}, 
+                      DiemCuoiKy = {4}, 
+                      DiemTongKet = {5}, 
+                      DiemChu = '{6}'
+                  WHERE MaLHP = '{0}' AND MSSV = '{1}'",
                 maLHP, mssv, cc, gk, ck, tk, chu);
+
             return ExecuteNonQuery(sql) > 0;
         }
     }

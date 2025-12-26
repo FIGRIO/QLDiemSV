@@ -14,6 +14,7 @@ namespace QLDiemSV_GUI
         private ComboBox cboLopHP;
         private Button btnLuu, btnIn;
         private DataGridView dgvDiem;
+        private string _maGV;
 
         // BUS
         BUS_LopHocPhan busLHP = new BUS_LopHocPhan();
@@ -23,8 +24,9 @@ namespace QLDiemSV_GUI
         private float _tyLeQT = 0.3f; // Mặc định 30%
         private float _tyLeCK = 0.7f; // Mặc định 70%
 
-        public frmNhapDiem()
+        public frmNhapDiem(string maGV = "")
         {
+            this._maGV = maGV; // Lưu lại để dùng
             InitializeComponent_Diem();
             LoadCboLop();
         }
@@ -102,8 +104,17 @@ namespace QLDiemSV_GUI
 
         private void LoadCboLop()
         {
-            // Load danh sách lớp (Kèm tỷ lệ để tính toán)
-            cboLopHP.DataSource = busLHP.GetDS();
+            // Nếu _maGV rỗng -> Là Admin -> Load hết
+            if (string.IsNullOrEmpty(_maGV) || _maGV.ToLower() == "admin")
+            {
+                cboLopHP.DataSource = busLHP.GetDS();
+            }
+            else
+            {
+                // Nếu có Mã GV -> Chỉ load lớp của GV đó
+                cboLopHP.DataSource = busLHP.GetLopByGV(_maGV);
+            }
+
             cboLopHP.DisplayMember = "MaLHP";
             cboLopHP.ValueMember = "MaLHP";
         }

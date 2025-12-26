@@ -13,5 +13,7 @@ namespace QLDiemSV_BUS
         public bool Sua(DTO_LopHocPhan lhp) => dal.Sua(lhp);
         public bool Xoa(string ma) => dal.Xoa(ma);
         public DataTable TimKiem(string kw) => dal.TimKiem(kw);
+
+        public DataTable GetLopByGV(string maGV) => dal.GetLopByGV(maGV);
     }
 }

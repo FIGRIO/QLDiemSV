@@ -47,5 +47,18 @@ namespace QLDiemSV_DAL
                 WHERE l.MaLHP LIKE '%{0}%' OR m.TenMon LIKE N'%{0}%'", kw);
             return GetDataTable(sql);
         }
+
+        public DataTable GetLopByGV(string maGV)
+        {
+            // Chỉ lấy các lớp mà MaGV trùng với người đăng nhập
+            string sql = string.Format(@"
+                SELECT l.MaLHP, l.MaMon, m.TenMon, l.HocKy, l.NamHoc, 
+                       l.TyLeQuaTrinh, l.TyLeCuoiKy
+                FROM LopHocPhan l
+                JOIN MonHoc m ON l.MaMon = m.MaMon
+                WHERE l.MaGV = '{0}'", maGV);
+
+            return GetDataTable(sql);
+        }
     }
 }

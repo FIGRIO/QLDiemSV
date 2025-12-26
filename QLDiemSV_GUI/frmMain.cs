@@ -194,7 +194,7 @@ namespace QLDiemSV_GUI
             else if (_quyenHan == "GiangVien")
             {
                 AddLabelCategory("GIẢNG DẠY");
-                AddButton("Nhập điểm lớp dạy", (s, e) => OpenChildForm(new frmNhapDiem(), "Nhập điểm thành phần"));
+                AddButton("Nhập điểm lớp dạy", (s, e) => OpenChildForm(new frmNhapDiem(_tenDangNhap), "Nhập điểm thành phần"));
                 AddButton("Lịch giảng dạy", null); // Chưa làm
             }
             // --- TRƯỜNG HỢP 3: SINH VIÊN ---
