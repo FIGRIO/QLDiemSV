@@ -34,8 +34,6 @@ namespace QLDiemSV_DAL
         }
 
         // 4. Hàm lấy dữ liệu (SELECT) - Trả về bảng dữ liệu (DataTable)
-        // File: QLDiemSV_DAL/DBConnect.cs
-
         public DataTable GetDataTable(string sql)
         {
             DataTable dt = new DataTable();
@@ -45,11 +43,9 @@ namespace QLDiemSV_DAL
                 SqlDataAdapter da = new SqlDataAdapter(sql, conn);
                 da.Fill(dt);
             }
-            catch (Exception ex) // Thêm biến ex để bắt lỗi
+            catch (Exception ex)
             {
-                dt = null;
-                // --- THÊM DÒNG NÀY ĐỂ XEM LỖI LÀ GÌ ---
-                System.Windows.Forms.MessageBox.Show("Lỗi SQL: " + ex.Message);
+                throw new Exception("Lỗi Database: " + ex.Message);
             }
             finally
             {

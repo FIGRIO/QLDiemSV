@@ -124,43 +124,68 @@ namespace QLDiemSV_GUI
             if (cboLopHP.SelectedValue == null) return;
             string maLHP = cboLopHP.SelectedValue.ToString();
 
-            // 1. Lấy tỷ lệ điểm của lớp này (Dựa vào index của dòng trong DataSource)
-            // (Cách nhanh: Lấy từ DataTable nguồn của ComboBox)
+            // --- SỬA: KHAI BÁO BIẾN row TRƯỚC ---
             DataRowView row = (DataRowView)cboLopHP.SelectedItem;
-            // Chuyển từ (30, 70) sang (0.3, 0.7)
-            _tyLeQT = Convert.ToSingle(row["TyLeQuaTrinh"]) / 100;
-            _tyLeCK = Convert.ToSingle(row["TyLeCuoiKy"]) / 100;
+
+            // --- SAU ĐÓ MỚI DÙNG row ĐỂ LẤY DỮ LIỆU ---
+            // Kiểm tra null để tránh lỗi crash
+            if (row["TyLeQuaTrinh"] != DBNull.Value && row["TyLeCuoiKy"] != DBNull.Value)
+            {
+                float rawQT = Convert.ToSingle(row["TyLeQuaTrinh"]);
+                float rawCK = Convert.ToSingle(row["TyLeCuoiKy"]);
+
+                // Logic: Nếu lưu 0.5 -> giữ nguyên. Nếu lưu 50 -> chia 100.
+                _tyLeQT = (rawQT > 1) ? rawQT / 100 : rawQT;
+                _tyLeCK = (rawCK > 1) ? rawCK / 100 : rawCK;
+            }
 
             lblTyLe.Text = string.Format("(Tỷ lệ QT/CK: {0}% - {1}%)", _tyLeQT * 100, _tyLeCK * 100);
 
-            // 2. Load bảng điểm
+            // Load bảng điểm
             LoadBangDiem(maLHP);
         }
 
         private void LoadBangDiem(string maLHP)
         {
-            DataTable dt = busKQ.GetBangDiem(maLHP);
-            dgvDiem.DataSource = dt;
+            try
+            {
+                DataTable dt = busKQ.GetBangDiem(maLHP);
 
-            // 3. Cấu hình các cột (Readonly và Editable)
-            // Cột Thông tin -> Chỉ xem
-            dgvDiem.Columns["MSSV"].ReadOnly = true;
-            dgvDiem.Columns["HoTen"].ReadOnly = true;
-            dgvDiem.Columns["MaLHP"].Visible = false; // Ẩn cột mã lớp
+                // Gán dữ liệu
+                dgvDiem.DataSource = dt;
 
-            // Cột Điểm -> Cho sửa
-            dgvDiem.Columns["DiemChuyenCan"].HeaderText = "Điểm CC";
-            dgvDiem.Columns["DiemGiuaKy"].HeaderText = "Giữa Kỳ";
-            dgvDiem.Columns["DiemCuoiKy"].HeaderText = "Cuối Kỳ";
+                // Nếu không có dữ liệu thì dừng, không làm gì thêm
+                if (dt == null) return;
 
-            // Cột Tổng kết -> Chỉ xem (Tự tính)
-            dgvDiem.Columns["DiemTongKet"].ReadOnly = true;
-            dgvDiem.Columns["DiemTongKet"].HeaderText = "Tổng Kết";
-            dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.BackColor = Color.LightYellow;
-            dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+                // Cấu hình cột (Chỉ chạy khi có dữ liệu)
+                if (dt.Columns.Contains("MSSV")) dgvDiem.Columns["MSSV"].ReadOnly = true;
+                if (dt.Columns.Contains("HoTen")) dgvDiem.Columns["HoTen"].ReadOnly = true;
+                if (dt.Columns.Contains("MaLHP")) dgvDiem.Columns["MaLHP"].Visible = false;
 
-            dgvDiem.Columns["DiemChu"].ReadOnly = true;
-            dgvDiem.Columns["DiemChu"].HeaderText = "Điểm Chữ";
+                // Kiểm tra cột trước khi đổi tên để tránh lỗi
+                if (dt.Columns.Contains("DiemChuyenCan")) dgvDiem.Columns["DiemChuyenCan"].HeaderText = "Điểm CC";
+                if (dt.Columns.Contains("DiemGiuaKy")) dgvDiem.Columns["DiemGiuaKy"].HeaderText = "Giữa Kỳ";
+                if (dt.Columns.Contains("DiemCuoiKy")) dgvDiem.Columns["DiemCuoiKy"].HeaderText = "Cuối Kỳ";
+
+                if (dt.Columns.Contains("DiemTongKet"))
+                {
+                    dgvDiem.Columns["DiemTongKet"].ReadOnly = true;
+                    dgvDiem.Columns["DiemTongKet"].HeaderText = "Tổng Kết";
+                    dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.BackColor = Color.LightYellow;
+                    dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+                }
+
+                if (dt.Columns.Contains("DiemChu"))
+                {
+                    dgvDiem.Columns["DiemChu"].ReadOnly = true;
+                    dgvDiem.Columns["DiemChu"].HeaderText = "Điểm Chữ";
+                }
+            }
+            catch (Exception ex)
+            {
+                // ĐÂY LÀ NƠI HIỆN LỖI CHÍNH XÁC
+                MessageBox.Show("Không thể tải bảng điểm:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // --- XỬ LÝ TÍNH TOÁN ---
