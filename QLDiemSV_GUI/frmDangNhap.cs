@@ -310,7 +310,7 @@ namespace QLDiemSV_GUI
             // 
             // frmDangNhap
             // 
-            this.ClientSize = new System.Drawing.Size(644, 253);
+            this.ClientSize = new System.Drawing.Size(531, 253);
             this.Name = "frmDangNhap";
             this.ResumeLayout(false);
 
