@@ -22,5 +22,17 @@ namespace QLDiemSV_BUS
         {
             return dalTaiKhoan.LayQuyenHan(user);
         }
+
+        public bool DoiMatKhau(string user, string oldPass, string newPass)
+        {
+            // 1. Kiểm tra mật khẩu cũ có đúng không
+            if (!dalTaiKhoan.KiemTraDangNhap(user, oldPass))
+            {
+                return false; // Mật khẩu cũ sai
+            }
+
+            // 2. Nếu đúng thì cập nhật mật khẩu mới
+            return dalTaiKhoan.DoiMatKhau(user, newPass);
+        }
     }
 }

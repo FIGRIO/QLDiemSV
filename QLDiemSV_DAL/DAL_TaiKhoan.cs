@@ -34,5 +34,11 @@ namespace QLDiemSV_DAL
             }
             return "";
         }
+
+        public bool DoiMatKhau(string tenDangNhap, string matKhauMoi)
+        {
+            string sql = string.Format("UPDATE TaiKhoan SET MatKhau = '{0}' WHERE TenDangNhap = '{1}'", matKhauMoi, tenDangNhap);
+            return ExecuteNonQuery(sql) > 0;
+        }
     }
 }

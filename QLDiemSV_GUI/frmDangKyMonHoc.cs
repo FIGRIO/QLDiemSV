@@ -31,17 +31,58 @@ namespace QLDiemSV_GUI
             this.BackColor = Color.FromArgb(242, 244, 248);
             this.FormBorderStyle = FormBorderStyle.None;
 
-            // 1. PANEL CONTROL (Chọn lớp & Đăng ký)
+            // =========================================================================
+            // 1. BẢNG DỮ LIỆU (QUAN TRỌNG: PHẢI ADD VÀO FORM ĐẦU TIÊN)
+            // =========================================================================
+            pnlTable = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
+
+            lblDS = new Label
+            {
+                Text = "DANH SÁCH SINH VIÊN ĐÃ ĐĂNG KÝ LỚP NÀY",
+                Dock = DockStyle.Top,
+                Height = 30,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold | FontStyle.Italic),
+                ForeColor = Color.DimGray,
+                TextAlign = ContentAlignment.BottomLeft
+            };
+            pnlTable.Controls.Add(lblDS);
+
+            dgvDS_Lop = new DataGridView
+            {
+                Dock = DockStyle.Fill,
+                BackgroundColor = Color.White,
+                BorderStyle = BorderStyle.None,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                RowHeadersVisible = false,
+                EnableHeadersVisualStyles = false,
+                ColumnHeadersHeight = 40
+            };
+            dgvDS_Lop.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(12, 59, 124);
+            dgvDS_Lop.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgvDS_Lop.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+
+            pnlTable.Controls.Add(dgvDS_Lop);
+            pnlTable.Controls.SetChildIndex(dgvDS_Lop, 0); // Đẩy Grid lên trên Label trong panel này
+
+            // ---> THÊM VÀO FORM ĐẦU TIÊN <---
+            this.Controls.Add(pnlTable);
+
+
+            // =========================================================================
+            // 2. PANEL CONTROL (ĐIỀU KHIỂN) - ADD THỨ HAI
+            // =========================================================================
             pnlControl = new Panel { Dock = DockStyle.Top, Height = 150, BackColor = Color.White, Padding = new Padding(20) };
             pnlControl.Paint += (s, e) => { ControlPaint.DrawBorder(e.Graphics, pnlControl.ClientRectangle, Color.LightGray, ButtonBorderStyle.Solid); };
-            this.Controls.Add(pnlControl);
 
             // -- Chọn Lớp HP --
             lblChonLop = new Label { Text = "Chọn Lớp học phần:", Location = new Point(30, 30), AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), ForeColor = Color.FromArgb(12, 59, 124) };
             pnlControl.Controls.Add(lblChonLop);
 
             cboLopHP = new ComboBox { Location = new Point(200, 27), Size = new Size(300, 30), Font = new Font("Segoe UI", 11), DropDownStyle = ComboBoxStyle.DropDownList };
-            cboLopHP.SelectedIndexChanged += CboLopHP_SelectedIndexChanged; // Sự kiện khi chọn lớp khác thì load lại bảng
+            cboLopHP.SelectedIndexChanged += CboLopHP_SelectedIndexChanged;
             pnlControl.Controls.Add(cboLopHP);
 
             // -- Chọn Sinh viên --
@@ -60,26 +101,19 @@ namespace QLDiemSV_GUI
             btnHuyDangKy.Width = 150;
             btnHuyDangKy.Click += BtnHuyDangKy_Click;
 
-            // 2. DANH SÁCH SINH VIÊN TRONG LỚP (TABLE)
-            pnlTable = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
+            // ---> THÊM VÀO FORM THỨ HAI <---
+            this.Controls.Add(pnlControl);
 
-            lblDS = new Label { Text = "DANH SÁCH SINH VIÊN ĐÃ ĐĂNG KÝ LỚP NÀY", Dock = DockStyle.Top, Height = 30, Font = new Font("Segoe UI", 10, FontStyle.Bold | FontStyle.Italic), ForeColor = Color.DimGray, TextAlign = ContentAlignment.BottomLeft };
-            pnlTable.Controls.Add(lblDS);
 
-            dgvDS_Lop = new DataGridView { Dock = DockStyle.Fill, BackgroundColor = Color.White, BorderStyle = BorderStyle.None, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, SelectionMode = DataGridViewSelectionMode.FullRowSelect, ReadOnly = true, AllowUserToAddRows = false, RowHeadersVisible = false, EnableHeadersVisualStyles = false, ColumnHeadersHeight = 40 };
-            dgvDS_Lop.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(12, 59, 124);
-            dgvDS_Lop.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
-            dgvDS_Lop.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
-            pnlTable.Controls.Add(dgvDS_Lop);
-            pnlTable.Controls.SetChildIndex(dgvDS_Lop, 0); // Đưa grid lên trên label (trong dock logic) nhưng label dock top nên label sẽ ở trên.
-
-            this.Controls.Add(pnlTable);
-
-            // 3. HEADER
+            // =========================================================================
+            // 3. HEADER (TIÊU ĐỀ) - ADD CUỐI CÙNG
+            // =========================================================================
             pnlHeader = new Panel { Dock = DockStyle.Top, Height = 50, BackColor = Color.FromArgb(242, 244, 248) };
             pnlHeader.Paint += (s, e) => { e.Graphics.DrawLine(new Pen(Color.FromArgb(12, 59, 124), 2), 15, 40, 250, 40); };
             lblHeader = new Label { Text = "  ➤  ĐĂNG KÝ MÔN HỌC", Font = new Font("Segoe UI", 14, FontStyle.Bold), ForeColor = Color.FromArgb(12, 59, 124), AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(10, 0, 0, 0) };
             pnlHeader.Controls.Add(lblHeader);
+
+            // ---> THÊM VÀO FORM CUỐI CÙNG <---
             this.Controls.Add(pnlHeader);
         }
 

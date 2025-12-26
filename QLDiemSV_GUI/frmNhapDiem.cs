@@ -37,10 +37,35 @@ namespace QLDiemSV_GUI
             this.BackColor = Color.FromArgb(242, 244, 248);
             this.FormBorderStyle = FormBorderStyle.None;
 
-            // 1. PANEL CONTROL (Chọn lớp)
+            // --- KHỞI TẠO CÁC PANEL TRƯỚC ---
+
+            // 1. TABLE (BẢNG ĐIỂM) - Khởi tạo
+            pnlTable = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
+            dgvDiem = new DataGridView
+            {
+                Dock = DockStyle.Fill,
+                BackgroundColor = Color.White,
+                BorderStyle = BorderStyle.None,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                RowHeadersVisible = false,
+                EnableHeadersVisualStyles = false,
+                ColumnHeadersHeight = 40,
+                AllowUserToAddRows = false
+            };
+            dgvDiem.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(12, 59, 124);
+            dgvDiem.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgvDiem.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+
+            // Sự kiện
+            dgvDiem.CellValueChanged += DgvDiem_CellValueChanged;
+            dgvDiem.EditingControlShowing += DgvDiem_EditingControlShowing;
+
+            pnlTable.Controls.Add(dgvDiem);
+
+
+            // 2. PANEL CONTROL (KHUNG CHỌN LỚP) - Khởi tạo
             pnlControl = new Panel { Dock = DockStyle.Top, Height = 80, BackColor = Color.White, Padding = new Padding(20) };
             pnlControl.Paint += (s, e) => { ControlPaint.DrawBorder(e.Graphics, pnlControl.ClientRectangle, Color.LightGray, ButtonBorderStyle.Solid); };
-            this.Controls.Add(pnlControl);
 
             lblChonLop = new Label { Text = "Chọn Lớp học phần:", Location = new Point(30, 28), AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), ForeColor = Color.FromArgb(12, 59, 124) };
             pnlControl.Controls.Add(lblChonLop);
@@ -52,44 +77,25 @@ namespace QLDiemSV_GUI
             lblTyLe = new Label { Text = "(Tỷ lệ: -- / --)", Location = new Point(520, 28), AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Italic), ForeColor = Color.DimGray };
             pnlControl.Controls.Add(lblTyLe);
 
-            btnLuu = CreateButton(pnlControl, "💾 LƯU BẢNG ĐIỂM", 850, 20, Color.FromArgb(0, 123, 255)); // Màu xanh dương
+            btnLuu = CreateButton(pnlControl, "💾 LƯU BẢNG ĐIỂM", 850, 20, Color.FromArgb(0, 123, 255));
             btnLuu.Width = 180;
             btnLuu.Click += BtnLuu_Click;
 
-            // 2. TABLE (BẢNG ĐIỂM)
-            pnlTable = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
 
-            dgvDiem = new DataGridView
-            {
-                Dock = DockStyle.Fill,
-                BackgroundColor = Color.White,
-                BorderStyle = BorderStyle.None,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                RowHeadersVisible = false,
-                EnableHeadersVisualStyles = false,
-                ColumnHeadersHeight = 40,
-                AllowUserToAddRows = false // Không cho tự thêm dòng
-            };
-
-            // Style Header
-            dgvDiem.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(12, 59, 124);
-            dgvDiem.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
-            dgvDiem.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
-
-            // Sự kiện tính toán tự động khi sửa ô
-            dgvDiem.CellValueChanged += DgvDiem_CellValueChanged;
-            // Sự kiện validate chỉ cho nhập số
-            dgvDiem.EditingControlShowing += DgvDiem_EditingControlShowing;
-
-            pnlTable.Controls.Add(dgvDiem);
-            this.Controls.Add(pnlTable);
-
-            // 3. HEADER
+            // 3. HEADER - Khởi tạo
             pnlHeader = new Panel { Dock = DockStyle.Top, Height = 50, BackColor = Color.FromArgb(242, 244, 248) };
             pnlHeader.Paint += (s, e) => { e.Graphics.DrawLine(new Pen(Color.FromArgb(12, 59, 124), 2), 15, 40, 250, 40); };
             lblHeader = new Label { Text = "  ➤  NHẬP ĐIỂM", Font = new Font("Segoe UI", 14, FontStyle.Bold), ForeColor = Color.FromArgb(12, 59, 124), AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(10, 0, 0, 0) };
             pnlHeader.Controls.Add(lblHeader);
-            this.Controls.Add(pnlHeader);
+
+
+            // --- QUAN TRỌNG: THỨ TỰ ADD VÀO FORM ---
+            // Add theo thứ tự: TABLE (Fill) -> CONTROL (Top) -> HEADER (Top)
+            // Để Header nằm trên cùng, Control nằm giữa, Table nằm dưới cùng
+
+            this.Controls.Add(pnlTable);   // Add trước tiên (sẽ nằm dưới cùng)
+            this.Controls.Add(pnlControl); // Add thứ hai (nằm đè lên Table nhưng Dock Top sẽ đẩy Table xuống)
+            this.Controls.Add(pnlHeader);  // Add cuối cùng (nằm trên cùng)
         }
 
         private Button CreateButton(Panel parent, string text, int x, int y, Color bg)

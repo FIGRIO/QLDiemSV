@@ -55,6 +55,12 @@
     <Compile Include="frmDangNhap.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="frmDoiMatKhau.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmDoiMatKhau.Designer.cs">
+      <DependentUpon>frmDoiMatKhau.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -84,6 +90,12 @@
     </Compile>
     <Compile Include="frmQLSinhVien.Designer.cs">
       <DependentUpon>frmQLSinhVien.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmXemDiem.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmXemDiem.Designer.cs">
+      <DependentUpon>frmXemDiem.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

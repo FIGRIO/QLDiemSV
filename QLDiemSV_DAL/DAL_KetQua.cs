@@ -67,5 +67,21 @@ namespace QLDiemSV_DAL
 
             return ExecuteNonQuery(sql) > 0;
         }
+
+        // 6. Xem kết quả học tập của một sinh viên (Dùng cho SV xem điểm)
+        public DataTable GetDiemBySinhVien(string mssv)
+        {
+            // Lấy Mã môn, Tên môn, Số tín chỉ và các đầu điểm
+            string sql = string.Format(@"
+        SELECT m.MaMon, m.TenMon, m.SoTinChi, l.HocKy, l.NamHoc,
+               k.DiemChuyenCan, k.DiemGiuaKy, k.DiemCuoiKy, 
+               k.DiemTongKet, k.DiemChu
+        FROM KetQua k
+        JOIN LopHocPhan l ON k.MaLHP = l.MaLHP
+        JOIN MonHoc m ON l.MaMon = m.MaMon
+        WHERE k.MSSV = '{0}'", mssv);
+
+            return GetDataTable(sql);
+        }
     }
 }

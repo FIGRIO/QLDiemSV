@@ -16,5 +16,6 @@ namespace QLDiemSV_BUS
         {
             return dal.CapNhatDiem(maLHP, mssv, cc, gk, ck, tk, chu);
         }
+        public DataTable GetDiemBySinhVien(string mssv) => dal.GetDiemBySinhVien(mssv);
     }
 }

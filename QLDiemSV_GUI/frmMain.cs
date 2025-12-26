@@ -201,15 +201,14 @@ namespace QLDiemSV_GUI
             else
             {
                 AddLabelCategory("HỌC TẬP");
-                AddButton("Kết quả học tập", null); // Chưa làm
+                AddButton("Kết quả học tập", (s, e) => OpenChildForm(new frmXemDiem(_tenDangNhap), "Kết quả học tập"));
                 AddButton("Đăng ký tín chỉ", null); // Chưa làm
                 AddButton("Thời khóa biểu", null);  // Chưa làm
             }
 
             // --- PHẦN CHUNG CHO TẤT CẢ ---
             AddLabelCategory("HỆ THỐNG");
-            AddButton("Đổi mật khẩu", null);
-            // Nút đăng xuất dùng Lambda Expression: Đóng form Main để quay về Login
+            AddButton("Đổi mật khẩu", (s, e) => new frmDoiMatKhau(_tenDangNhap).ShowDialog());
             AddButton("Đăng xuất", (s, e) => this.Close());
         }
 
