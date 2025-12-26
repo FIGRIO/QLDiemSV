@@ -55,5 +55,13 @@ namespace QLDiemSV_DAL
             }
             return false;
         }
+
+        // 5. Tìm kiếm Sinh viên (Theo MSSV hoặc Tên)
+        public DataTable TimKiemSinhVien(string keyword)
+        {
+            // Sử dụng LIKE để tìm gần đúng
+            string sql = string.Format("SELECT * FROM SinhVien WHERE MSSV LIKE '%{0}%' OR HoTen LIKE N'%{0}%'", keyword);
+            return this.GetDataTable(sql);
+        }
     }
 }

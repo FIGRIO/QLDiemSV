@@ -1,0 +1,257 @@
+﻿using System;
+using System.Data;
+using System.Drawing;
+using System.Windows.Forms;
+using QLDiemSV_BUS;
+
+namespace QLDiemSV_GUI
+{
+    public partial class frmNhapDiem : Form
+    {
+        // Controls
+        private Panel pnlHeader, pnlControl, pnlTable;
+        private Label lblHeader, lblChonLop, lblTyLe;
+        private ComboBox cboLopHP;
+        private Button btnLuu, btnIn;
+        private DataGridView dgvDiem;
+
+        // BUS
+        BUS_LopHocPhan busLHP = new BUS_LopHocPhan();
+        BUS_KetQua busKQ = new BUS_KetQua();
+
+        // Biến lưu tỷ lệ của lớp đang chọn
+        private float _tyLeQT = 0.3f; // Mặc định 30%
+        private float _tyLeCK = 0.7f; // Mặc định 70%
+
+        public frmNhapDiem()
+        {
+            InitializeComponent_Diem();
+            LoadCboLop();
+        }
+
+        private void InitializeComponent_Diem()
+        {
+            this.ClientSize = new Size(1100, 650);
+            this.BackColor = Color.FromArgb(242, 244, 248);
+            this.FormBorderStyle = FormBorderStyle.None;
+
+            // 1. PANEL CONTROL (Chọn lớp)
+            pnlControl = new Panel { Dock = DockStyle.Top, Height = 80, BackColor = Color.White, Padding = new Padding(20) };
+            pnlControl.Paint += (s, e) => { ControlPaint.DrawBorder(e.Graphics, pnlControl.ClientRectangle, Color.LightGray, ButtonBorderStyle.Solid); };
+            this.Controls.Add(pnlControl);
+
+            lblChonLop = new Label { Text = "Chọn Lớp học phần:", Location = new Point(30, 28), AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), ForeColor = Color.FromArgb(12, 59, 124) };
+            pnlControl.Controls.Add(lblChonLop);
+
+            cboLopHP = new ComboBox { Location = new Point(200, 25), Size = new Size(300, 30), Font = new Font("Segoe UI", 11), DropDownStyle = ComboBoxStyle.DropDownList };
+            cboLopHP.SelectedIndexChanged += CboLopHP_SelectedIndexChanged;
+            pnlControl.Controls.Add(cboLopHP);
+
+            lblTyLe = new Label { Text = "(Tỷ lệ: -- / --)", Location = new Point(520, 28), AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Italic), ForeColor = Color.DimGray };
+            pnlControl.Controls.Add(lblTyLe);
+
+            btnLuu = CreateButton(pnlControl, "💾 LƯU BẢNG ĐIỂM", 850, 20, Color.FromArgb(0, 123, 255)); // Màu xanh dương
+            btnLuu.Width = 180;
+            btnLuu.Click += BtnLuu_Click;
+
+            // 2. TABLE (BẢNG ĐIỂM)
+            pnlTable = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
+
+            dgvDiem = new DataGridView
+            {
+                Dock = DockStyle.Fill,
+                BackgroundColor = Color.White,
+                BorderStyle = BorderStyle.None,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                RowHeadersVisible = false,
+                EnableHeadersVisualStyles = false,
+                ColumnHeadersHeight = 40,
+                AllowUserToAddRows = false // Không cho tự thêm dòng
+            };
+
+            // Style Header
+            dgvDiem.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(12, 59, 124);
+            dgvDiem.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgvDiem.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+
+            // Sự kiện tính toán tự động khi sửa ô
+            dgvDiem.CellValueChanged += DgvDiem_CellValueChanged;
+            // Sự kiện validate chỉ cho nhập số
+            dgvDiem.EditingControlShowing += DgvDiem_EditingControlShowing;
+
+            pnlTable.Controls.Add(dgvDiem);
+            this.Controls.Add(pnlTable);
+
+            // 3. HEADER
+            pnlHeader = new Panel { Dock = DockStyle.Top, Height = 50, BackColor = Color.FromArgb(242, 244, 248) };
+            pnlHeader.Paint += (s, e) => { e.Graphics.DrawLine(new Pen(Color.FromArgb(12, 59, 124), 2), 15, 40, 250, 40); };
+            lblHeader = new Label { Text = "  ➤  NHẬP ĐIỂM", Font = new Font("Segoe UI", 14, FontStyle.Bold), ForeColor = Color.FromArgb(12, 59, 124), AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(10, 0, 0, 0) };
+            pnlHeader.Controls.Add(lblHeader);
+            this.Controls.Add(pnlHeader);
+        }
+
+        private Button CreateButton(Panel parent, string text, int x, int y, Color bg)
+        {
+            var b = new Button { Text = text, Location = new Point(x, y), Size = new Size(120, 35), FlatStyle = FlatStyle.Flat, BackColor = bg, ForeColor = Color.White, Font = new Font("Segoe UI", 9, FontStyle.Bold), Cursor = Cursors.Hand };
+            b.FlatAppearance.BorderSize = 0;
+            parent.Controls.Add(b);
+            return b;
+        }
+
+        // --- LOGIC ---
+
+        private void LoadCboLop()
+        {
+            // Load danh sách lớp (Kèm tỷ lệ để tính toán)
+            cboLopHP.DataSource = busLHP.GetDS();
+            cboLopHP.DisplayMember = "MaLHP";
+            cboLopHP.ValueMember = "MaLHP";
+        }
+
+        private void CboLopHP_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cboLopHP.SelectedValue == null) return;
+            string maLHP = cboLopHP.SelectedValue.ToString();
+
+            // 1. Lấy tỷ lệ điểm của lớp này (Dựa vào index của dòng trong DataSource)
+            // (Cách nhanh: Lấy từ DataTable nguồn của ComboBox)
+            DataRowView row = (DataRowView)cboLopHP.SelectedItem;
+            // Chuyển từ (30, 70) sang (0.3, 0.7)
+            _tyLeQT = Convert.ToSingle(row["TyLeQuaTrinh"]) / 100;
+            _tyLeCK = Convert.ToSingle(row["TyLeCuoiKy"]) / 100;
+
+            lblTyLe.Text = string.Format("(Tỷ lệ QT/CK: {0}% - {1}%)", _tyLeQT * 100, _tyLeCK * 100);
+
+            // 2. Load bảng điểm
+            LoadBangDiem(maLHP);
+        }
+
+        private void LoadBangDiem(string maLHP)
+        {
+            DataTable dt = busKQ.GetBangDiem(maLHP);
+            dgvDiem.DataSource = dt;
+
+            // 3. Cấu hình các cột (Readonly và Editable)
+            // Cột Thông tin -> Chỉ xem
+            dgvDiem.Columns["MSSV"].ReadOnly = true;
+            dgvDiem.Columns["HoTen"].ReadOnly = true;
+            dgvDiem.Columns["MaLHP"].Visible = false; // Ẩn cột mã lớp
+
+            // Cột Điểm -> Cho sửa
+            dgvDiem.Columns["DiemChuyenCan"].HeaderText = "Điểm CC";
+            dgvDiem.Columns["DiemGiuaKy"].HeaderText = "Giữa Kỳ";
+            dgvDiem.Columns["DiemCuoiKy"].HeaderText = "Cuối Kỳ";
+
+            // Cột Tổng kết -> Chỉ xem (Tự tính)
+            dgvDiem.Columns["DiemTongKet"].ReadOnly = true;
+            dgvDiem.Columns["DiemTongKet"].HeaderText = "Tổng Kết";
+            dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.BackColor = Color.LightYellow;
+            dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+
+            dgvDiem.Columns["DiemChu"].ReadOnly = true;
+            dgvDiem.Columns["DiemChu"].HeaderText = "Điểm Chữ";
+        }
+
+        // --- XỬ LÝ TÍNH TOÁN ---
+
+        // 1. Chỉ cho nhập số vào ô điểm
+        private void DgvDiem_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+            e.Control.KeyPress -= new KeyPressEventHandler(Column_KeyPress);
+            if (dgvDiem.CurrentCell.ColumnIndex >= 2 && dgvDiem.CurrentCell.ColumnIndex <= 4) // Các cột điểm
+            {
+                TextBox tb = e.Control as TextBox;
+                if (tb != null)
+                {
+                    tb.KeyPress += new KeyPressEventHandler(Column_KeyPress);
+                }
+            }
+        }
+        private void Column_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // Chỉ cho nhập số, dấu chấm, và phím xóa
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && (e.KeyChar != '.'))
+            {
+                e.Handled = true;
+            }
+        }
+
+        // 2. Tự động tính điểm khi nhập xong
+        private void DgvDiem_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            // Kiểm tra nếu đang sửa cột CC, GK hoặc CK thì tính lại Tổng
+            string colName = dgvDiem.Columns[e.ColumnIndex].Name;
+            if (colName == "DiemChuyenCan" || colName == "DiemGiuaKy" || colName == "DiemCuoiKy")
+            {
+                TinhDiemTongKet(e.RowIndex);
+            }
+        }
+
+        private void TinhDiemTongKet(int rowIndex)
+        {
+            try
+            {
+                DataGridViewRow r = dgvDiem.Rows[rowIndex];
+
+                // Lấy giá trị (Nếu null coi như 0)
+                float cc = r.Cells["DiemChuyenCan"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemChuyenCan"].Value);
+                float gk = r.Cells["DiemGiuaKy"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemGiuaKy"].Value);
+                float ck = r.Cells["DiemCuoiKy"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemCuoiKy"].Value);
+
+                // CÔNG THỨC TÍNH: 
+                // Quá trình = (CC + GK) / 2  (Hoặc tùy quy chế trường bạn)
+                // Tổng kết = (Quá trình * Tỷ lệ QT) + (Cuối kỳ * Tỷ lệ CK)
+
+                float diemQuaTrinh = (cc + gk) / 2;
+                float diemTongKet = (diemQuaTrinh * _tyLeQT) + (ck * _tyLeCK);
+
+                // Làm tròn 1 chữ số thập phân
+                diemTongKet = (float)Math.Round(diemTongKet, 1);
+
+                // Gán vào lưới
+                r.Cells["DiemTongKet"].Value = diemTongKet;
+
+                // Quy đổi điểm chữ (Hệ 10)
+                string diemChu = "";
+                if (diemTongKet >= 9.0) diemChu = "A+";
+                else if (diemTongKet >= 8.5) diemChu = "A";
+                else if (diemTongKet >= 8.0) diemChu = "B+";
+                else if (diemTongKet >= 7.0) diemChu = "B";
+                else if (diemTongKet >= 6.5) diemChu = "C+";
+                else if (diemTongKet >= 5.5) diemChu = "C";
+                else if (diemTongKet >= 5.0) diemChu = "D+";
+                else if (diemTongKet >= 4.0) diemChu = "D";
+                else diemChu = "F";
+
+                r.Cells["DiemChu"].Value = diemChu;
+            }
+            catch { }
+        }
+
+        // --- LƯU XUỐNG CSDL ---
+        private void BtnLuu_Click(object sender, EventArgs e)
+        {
+            // Duyệt từng dòng trong bảng và update
+            int count = 0;
+            string maLHP = cboLopHP.SelectedValue.ToString();
+
+            foreach (DataGridViewRow r in dgvDiem.Rows)
+            {
+                string mssv = r.Cells["MSSV"].Value.ToString();
+
+                // Lấy điểm (xử lý null)
+                float cc = r.Cells["DiemChuyenCan"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemChuyenCan"].Value);
+                float gk = r.Cells["DiemGiuaKy"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemGiuaKy"].Value);
+                float ck = r.Cells["DiemCuoiKy"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemCuoiKy"].Value);
+                float tk = r.Cells["DiemTongKet"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemTongKet"].Value);
+                string chu = r.Cells["DiemChu"].Value == DBNull.Value ? "" : r.Cells["DiemChu"].Value.ToString();
+
+                if (busKQ.CapNhatDiem(maLHP, mssv, cc, gk, ck, tk, chu)) count++;
+            }
+
+            MessageBox.Show("Đã lưu thành công " + count + " sinh viên!", "Thông báo");
+        }
+    }
+}

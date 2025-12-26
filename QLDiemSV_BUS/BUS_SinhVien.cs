@@ -27,5 +27,9 @@ namespace QLDiemSV_BUS
         {
             return dalSV.XoaSinhVien(mssv);
         }
+        public DataTable TimKiemSV(string keyword)
+        {
+            return dalSV.TimKiemSinhVien(keyword);
+        }
     }
 }

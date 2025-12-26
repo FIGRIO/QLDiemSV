@@ -11,7 +11,7 @@ namespace QLDiemSV_GUI
         private Panel pnlHeader;
         private Panel pnlContent;
 
-        // Container
+        // Container bên trong Sidebar
         private Panel pnlLogoContainer;
         private Panel pnlUserContainer;
         private FlowLayoutPanel flowMenuContainer;
@@ -24,20 +24,22 @@ namespace QLDiemSV_GUI
         private Label lblVaiTro;
         private Label lblTieuDeHeader;
 
+        // Quản lý Form con
         private Form currentChildForm;
         private string _tenDangNhap;
-        private string _quyenHan;
+        private string _quyenHan; // "Admin", "GiangVien", hoặc "SinhVien"
 
+        // Constructor nhận thông tin đăng nhập
         public frmMain(string tenDangNhap, string quyenHan)
         {
             this._tenDangNhap = tenDangNhap;
             this._quyenHan = quyenHan;
-            InitializeComponent_Correct_Layout();
+            InitializeComponent_Layout();
         }
 
-        private void InitializeComponent_Correct_Layout()
+        private void InitializeComponent_Layout()
         {
-            // 1. Cài đặt Form
+            // 1. Cài đặt Form chính
             this.Size = new Size(1300, 750);
             this.Text = "HỆ THỐNG QUẢN LÝ ĐÀO TẠO";
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -46,64 +48,49 @@ namespace QLDiemSV_GUI
             this.Font = new Font("Segoe UI", 10);
 
             // =================================================================================
-            // BƯỚC 1: TẠO CÁC PANEL
+            // TẠO CÁC PANEL CHÍNH
             // =================================================================================
 
-            // A. SIDEBAR (CỘT TRÁI)
+            // A. SIDEBAR (TRÁI)
             pnlSidebar = new Panel();
             pnlSidebar.Dock = DockStyle.Left;
             pnlSidebar.Width = 270;
             pnlSidebar.BackColor = Color.White;
+            // Vẽ đường kẻ dọc ngăn cách
             pnlSidebar.Paint += (s, e) => { e.Graphics.DrawLine(Pens.Silver, pnlSidebar.Width - 1, 0, pnlSidebar.Width - 1, pnlSidebar.Height); };
 
-            // B. HEADER (THANH XANH)
+            // B. HEADER (TRÊN)
             pnlHeader = new Panel();
             pnlHeader.Dock = DockStyle.Top;
             pnlHeader.Height = 70;
-            pnlHeader.BackColor = Color.FromArgb(12, 59, 124);
+            pnlHeader.BackColor = Color.FromArgb(12, 59, 124); // Xanh đậm thương hiệu
 
-            // C. CONTENT
+            // C. CONTENT (GIỮA)
             pnlContent = new Panel();
             pnlContent.Dock = DockStyle.Fill;
-            pnlContent.BackColor = Color.FromArgb(242, 244, 248);
+            pnlContent.BackColor = Color.FromArgb(242, 244, 248); // Xám rất nhạt
 
-            // =================================================================================
-            // BƯỚC 2: ADD VÀO FORM & SẮP XẾP LỚP (QUAN TRỌNG NHẤT)
-            // =================================================================================
-
+            // --- QUAN TRỌNG: SẮP XẾP LỚP (Z-ORDER) ---
             this.Controls.Add(pnlContent);
             this.Controls.Add(pnlHeader);
             this.Controls.Add(pnlSidebar);
 
-            // --- CHÌA KHÓA SỬA LỖI Ở ĐÂY ---
-            // SendToBack() => Đẩy Sidebar xuống đáy lớp Z-Order.
-            // Trong WinForms, lớp dưới cùng sẽ được Dock TRƯỚC TIÊN.
-            // => Sidebar sẽ chiếm trọn chiều cao bên trái.
-            pnlSidebar.SendToBack();
-
-            // BringToFront() => Đưa Content lên trên cùng.
-            // => Header sẽ nằm ở lớp giữa, chiếm phần Top của vùng còn lại (bên phải Sidebar).
-            pnlContent.BringToFront();
-
+            pnlSidebar.SendToBack(); // Dock Left chạy trước
+            pnlContent.BringToFront(); // Fill phần còn lại
 
             // =================================================================================
-            // BƯỚC 3: CẤU TRÚC SIDEBAR
+            // CẤU TRÚC BÊN TRONG SIDEBAR
             // =================================================================================
 
-            // 3.1 MENU (Add trước)
+            // 1. MENU (Dưới cùng, tự giãn)
             flowMenuContainer = new FlowLayoutPanel();
             flowMenuContainer.Dock = DockStyle.Fill;
             flowMenuContainer.FlowDirection = FlowDirection.TopDown;
             flowMenuContainer.WrapContents = false;
-            flowMenuContainer.AutoScroll = true;
-            // Fix thanh cuộn
-            flowMenuContainer.HorizontalScroll.Maximum = 0;
-            flowMenuContainer.AutoScroll = false;
-            flowMenuContainer.VerticalScroll.Visible = true;
-            flowMenuContainer.AutoScroll = true;
+            flowMenuContainer.AutoScroll = true; // Cho phép cuộn nếu menu dài
             pnlSidebar.Controls.Add(flowMenuContainer);
 
-            // 3.2 USER (Add nhì)
+            // 2. USER INFO (Giữa)
             pnlUserContainer = new Panel();
             pnlUserContainer.Dock = DockStyle.Top;
             pnlUserContainer.Height = 100;
@@ -111,19 +98,18 @@ namespace QLDiemSV_GUI
             pnlUserContainer.Paint += (s, e) => { e.Graphics.DrawLine(Pens.LightGray, 20, 99, 250, 99); };
             pnlSidebar.Controls.Add(pnlUserContainer);
 
-            // 3.3 LOGO (Add cuối -> Lên đỉnh)
+            // 3. LOGO (Trên cùng)
             pnlLogoContainer = new Panel();
             pnlLogoContainer.Dock = DockStyle.Top;
             pnlLogoContainer.Height = 160;
             pnlLogoContainer.BackColor = Color.White;
             pnlSidebar.Controls.Add(pnlLogoContainer);
 
-
             // =================================================================================
-            // BƯỚC 4: ĐIỀN NỘI DUNG
+            // ĐIỀN NỘI DUNG CHI TIẾT
             // =================================================================================
 
-            // --- LOGO ---
+            // --- LOGO AREA ---
             pbLogoTruong = new PictureBox();
             pbLogoTruong.Size = new Size(100, 100);
             pbLogoTruong.SizeMode = PictureBoxSizeMode.Zoom;
@@ -140,11 +126,12 @@ namespace QLDiemSV_GUI
             lblTenTruongLogo.Location = new Point(0, 125);
             pnlLogoContainer.Controls.Add(lblTenTruongLogo);
 
-            // --- USER ---
+            // --- USER AREA ---
             pbAvatar = new PictureBox();
             pbAvatar.Size = new Size(60, 60);
             pbAvatar.Location = new Point(20, 20);
             pbAvatar.SizeMode = PictureBoxSizeMode.StretchImage;
+            // Bo tròn Avatar
             System.Drawing.Drawing2D.GraphicsPath gp = new System.Drawing.Drawing2D.GraphicsPath();
             gp.AddEllipse(0, 0, 59, 59);
             pbAvatar.Region = new Region(gp);
@@ -166,60 +153,76 @@ namespace QLDiemSV_GUI
             lblVaiTro.Location = new Point(92, 50);
             pnlUserContainer.Controls.Add(lblVaiTro);
 
-            // --- MENU ---
+            // --- MENU AREA (Logic phân quyền nằm ở đây) ---
             TaoMenu_FlowLayout();
 
-            // =================================================================================
-            // BƯỚC 5: HEADER TEXT (CĂN TRÁI + DỊCH PHẢI 30px)
-            // =================================================================================
+            // --- HEADER TEXT ---
             lblTieuDeHeader = new Label();
             lblTieuDeHeader.Text = "TRƯỜNG ĐẠI HỌC SƯ PHẠM KỸ THUẬT TP.HCM";
             lblTieuDeHeader.ForeColor = Color.White;
             lblTieuDeHeader.Font = new Font("Segoe UI", 16, FontStyle.Bold);
-
             lblTieuDeHeader.AutoSize = false;
             lblTieuDeHeader.Dock = DockStyle.Fill;
-            lblTieuDeHeader.TextAlign = ContentAlignment.MiddleLeft; // Căn lề trái
-            lblTieuDeHeader.Padding = new Padding(30, 0, 0, 0);      // Dịch sang phải 30px
-
+            lblTieuDeHeader.TextAlign = ContentAlignment.MiddleLeft;
+            lblTieuDeHeader.Padding = new Padding(30, 0, 0, 0);
             pnlHeader.Controls.Add(lblTieuDeHeader);
         }
 
+        // =================================================================================
+        // HÀM TẠO MENU ĐỘNG (PHÂN QUYỀN)
+        // =================================================================================
         private void TaoMenu_FlowLayout()
         {
             flowMenuContainer.Controls.Clear();
 
-            AddLabelCategory("DANH MỤC QUẢN LÝ");
+            // --- TRƯỜNG HỢP 1: ADMIN ---
             if (_quyenHan == "Admin")
             {
-                AddButton("Sinh viên", OpenQLSinhVien);
-                AddButton("Giảng viên", null);
-                AddButton("Môn học", null);
-                AddButton("Lớp học phần", null);
+                AddLabelCategory("QUẢN TRỊ DỮ LIỆU");
+                AddButton("Sinh viên", (s, e) => OpenChildForm(new frmQLSinhVien(), "Quản lý Sinh viên"));
+                AddButton("Giảng viên", (s, e) => OpenChildForm(new frmQLGiangVien(), "Quản lý Giảng viên"));
+                AddButton("Môn học", (s, e) => OpenChildForm(new frmQLMonHoc(), "Quản lý Môn học"));
+                AddButton("Lớp học phần", (s, e) => OpenChildForm(new frmQLLopHocPhan(), "Quản lý Lớp Học Phần"));
+
+                AddLabelCategory("NGHIỆP VỤ ĐÀO TẠO");
+                // Admin cần vào đây để xếp lớp cho sinh viên
+                AddButton("Đăng ký môn (Xếp lớp)", (s, e) => OpenChildForm(new frmDangKyMonHoc(), "Xếp lớp Sinh viên"));
+                // Admin cần vào đây để sửa điểm nếu có sai sót (Hậu kiểm)
+                AddButton("Quản lý Điểm", (s, e) => OpenChildForm(new frmNhapDiem(), "Quản lý Điểm (Admin)"));
             }
+            // --- TRƯỜNG HỢP 2: GIẢNG VIÊN ---
             else if (_quyenHan == "GiangVien")
             {
-                AddButton("Nhập điểm", null);
-                AddButton("Lịch giảng dạy", null);
+                AddLabelCategory("GIẢNG DẠY");
+                AddButton("Nhập điểm lớp dạy", (s, e) => OpenChildForm(new frmNhapDiem(), "Nhập điểm thành phần"));
+                AddButton("Lịch giảng dạy", null); // Chưa làm
             }
+            // --- TRƯỜNG HỢP 3: SINH VIÊN ---
             else
             {
-                AddButton("Kết quả học tập", null);
-                AddButton("Đăng ký môn học", null);
-                AddButton("Thời khóa biểu", null);
+                AddLabelCategory("HỌC TẬP");
+                AddButton("Kết quả học tập", null); // Chưa làm
+                AddButton("Đăng ký tín chỉ", null); // Chưa làm
+                AddButton("Thời khóa biểu", null);  // Chưa làm
             }
 
+            // --- PHẦN CHUNG CHO TẤT CẢ ---
             AddLabelCategory("HỆ THỐNG");
             AddButton("Đổi mật khẩu", null);
-            AddButton("Đăng xuất", Logout);
+            // Nút đăng xuất dùng Lambda Expression: Đóng form Main để quay về Login
+            AddButton("Đăng xuất", (s, e) => this.Close());
         }
+
+        // =================================================================================
+        // CÁC HÀM HỖ TRỢ (UI HELPER)
+        // =================================================================================
 
         private void AddButton(string text, EventHandler action)
         {
             Button btn = new Button();
             btn.Width = 250;
             btn.Height = 50;
-            btn.Text = "      " + text;
+            btn.Text = "      " + text; // Khoảng trắng để thụt đầu dòng
             btn.TextAlign = ContentAlignment.MiddleLeft;
             btn.FlatStyle = FlatStyle.Flat;
             btn.FlatAppearance.BorderSize = 0;
@@ -228,12 +231,13 @@ namespace QLDiemSV_GUI
             btn.Cursor = Cursors.Hand;
             btn.Margin = new Padding(0);
 
+            // Hiệu ứng Hover xịn xò
             btn.MouseEnter += (s, e) => {
                 btn.BackColor = Color.FromArgb(235, 245, 255);
                 btn.ForeColor = Color.FromArgb(12, 59, 124);
                 btn.Font = new Font("Segoe UI", 10, FontStyle.Bold);
-                btn.FlatAppearance.BorderSize = 1;
-                btn.FlatAppearance.BorderColor = Color.FromArgb(12, 59, 124);
+                btn.FlatAppearance.BorderSize = 1; // Hiện viền nhẹ
+                btn.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
             };
             btn.MouseLeave += (s, e) => {
                 btn.BackColor = Color.White;
@@ -252,33 +256,29 @@ namespace QLDiemSV_GUI
             lbl.Text = text;
             lbl.Font = new Font("Segoe UI", 8, FontStyle.Bold);
             lbl.ForeColor = Color.Silver;
-            lbl.Padding = new Padding(20, 20, 0, 5);
+            lbl.Padding = new Padding(20, 20, 0, 5); // Căn lề
             lbl.AutoSize = true;
-            lbl.MinimumSize = new Size(250, 40);
+            lbl.MinimumSize = new Size(250, 40); // Chiếm dòng
             flowMenuContainer.Controls.Add(lbl);
         }
 
         private void OpenChildForm(Form childForm, string title)
         {
             if (currentChildForm != null) currentChildForm.Close();
+
             currentChildForm = childForm;
             childForm.TopLevel = false;
             childForm.FormBorderStyle = FormBorderStyle.None;
             childForm.Dock = DockStyle.Fill;
+
             pnlContent.Controls.Add(childForm);
             pnlContent.Tag = childForm;
+
             childForm.BringToFront();
             childForm.Show();
-        }
 
-        private void OpenQLSinhVien(object sender, EventArgs e)
-        {
-            OpenChildForm(new frmQLSinhVien(), "Quản lý Sinh viên");
-        }
-
-        private void Logout(object sender, EventArgs e)
-        {
-            this.Close();
+            // Cập nhật tiêu đề trên Header cho biết đang ở đâu
+            lblTieuDeHeader.Text = "  ➤  " + title.ToUpper();
         }
     }
 }
