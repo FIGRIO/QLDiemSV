@@ -5,7 +5,6 @@
         public string MaLHP { get; set; }
         public string MSSV { get; set; }
         // Các điểm số có thể null nên dùng float? (nullable) hoặc float
-        public float DiemCC { get; set; }
         public float DiemGK { get; set; }
         public float DiemCK { get; set; }
         public float DiemTK { get; set; }

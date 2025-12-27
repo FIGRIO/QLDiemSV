@@ -17,5 +17,10 @@ namespace QLDiemSV_BUS
         public DataTable GetLopByGV(string maGV) => dal.GetLopByGV(maGV);
 
         public DataTable GetLichDay(string maGV) => dal.GetLichDay(maGV);
+
+        public DataTable GetLichHocSinhVien(string mssv, string namHoc, string hocKy)
+        {
+            return dal.GetLichHocSinhVien(mssv, namHoc, hocKy);
+        }
     }
 }

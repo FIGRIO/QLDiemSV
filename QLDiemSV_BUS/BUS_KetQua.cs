@@ -12,9 +12,9 @@ namespace QLDiemSV_BUS
         public bool HuyDangKy(string maLHP, string mssv) => dal.HuyDangKy(maLHP, mssv);
 
         public DataTable GetBangDiem(string maLHP) => dal.GetBangDiem(maLHP);
-        public bool CapNhatDiem(string maLHP, string mssv, float cc, float gk, float ck, float tk, string chu)
+        public bool CapNhatDiem(string maLHP, string mssv, float gk, float ck, float tk, string chu)
         {
-            return dal.CapNhatDiem(maLHP, mssv, cc, gk, ck, tk, chu);
+            return dal.CapNhatDiem(maLHP, mssv, gk, ck, tk, chu);
         }
         public DataTable GetDiemBySinhVien(string mssv) => dal.GetDiemBySinhVien(mssv);
     }

@@ -203,8 +203,7 @@ namespace QLDiemSV_GUI
             {
                 AddLabelCategory("HỌC TẬP");
                 AddButton("Kết quả học tập", (s, e) => OpenChildForm(new frmXemDiem(_tenDangNhap), "Kết quả học tập"));
-                AddButton("Đăng ký tín chỉ", null); // Chưa làm
-                AddButton("Thời khóa biểu", null);  // Chưa làm
+                AddButton("Thời khóa biểu", (s, e) => OpenChildForm(new frmThoiKhoaBieu(_tenDangNhap), "Thời khóa biểu"));
             }
 
             // --- PHẦN CHUNG CHO TẤT CẢ ---

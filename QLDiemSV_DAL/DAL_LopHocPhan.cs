@@ -92,5 +92,21 @@ namespace QLDiemSV_DAL
 
             return GetDataTable(sql);
         }
+
+        public DataTable GetLichHocSinhVien(string mssv, string namHoc, string hocKy)
+        {
+            // Kết bảng KetQua (để lấy lớp SV học) với LopHocPhan (để lấy lịch)
+            string sql = string.Format(@"
+        SELECT l.MaLHP, m.TenMon, l.Thu, l.TietBatDau, l.SoTiet, l.PhongHoc, g.HoTen as TenGV
+        FROM KetQua k
+        JOIN LopHocPhan l ON k.MaLHP = l.MaLHP
+        JOIN MonHoc m ON l.MaMon = m.MaMon
+        JOIN GiangVien g ON l.MaGV = g.MaGV
+        WHERE k.MSSV = '{0}' 
+          AND l.NamHoc = '{1}' 
+          AND l.HocKy = '{2}'", mssv, namHoc, hocKy);
+
+            return GetDataTable(sql);
+        }
     }
 }

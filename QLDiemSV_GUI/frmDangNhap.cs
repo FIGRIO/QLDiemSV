@@ -22,6 +22,9 @@ namespace QLDiemSV_GUI
         private Label lblUserIcon;
         private Label lblPassIcon;
 
+        // Nút con mắt hiện mật khẩu
+        private Label lblEye;
+
         private Button btnLogin;
         private Button btnExit;
         private LinkLabel lnkQuenMatKhau;
@@ -52,27 +55,24 @@ namespace QLDiemSV_GUI
             pnlLeft.Paint += new PaintEventHandler(pnlLeft_Paint); // Gắn sự kiện vẽ màu
             pnlLeft.MouseDown += new MouseEventHandler(pnlTop_MouseDown); // Gắn sự kiện kéo thả
 
-            // --- LOGO TỪ RESOURCES (Đã sửa theo yêu cầu) ---
+            // --- LOGO ---
             pbLogo = new PictureBox();
             pbLogo.SizeMode = PictureBoxSizeMode.Zoom;
             pbLogo.Size = new Size(180, 180);
             pbLogo.Location = new Point(85, 100);
             pbLogo.BackColor = Color.Transparent;
-
             try
             {
-                // LƯU Ý: Đảm bảo tên ảnh trong Resources là 'hcmute_logo'
-                // Nếu báo lỗi đỏ ở đây, hãy kiểm tra lại tên file ảnh bạn đã Add vào Resources
+                // LƯU Ý: Đảm bảo trong Resources có ảnh tên 'hcmute_logo'
                 pbLogo.Image = Properties.Resources.hcmute_logo;
             }
             catch
             {
-                // Nếu chưa có ảnh thì để trống hoặc tô màu tạm để không lỗi
-                pbLogo.BackColor = Color.WhiteSmoke;
+                pbLogo.BackColor = Color.WhiteSmoke; // Dự phòng nếu không có ảnh
             }
             pnlLeft.Controls.Add(pbLogo);
 
-            // Slogan
+            // --- SLOGAN ---
             lblSlogan = new Label();
             lblSlogan.Text = "KHOA CÔNG NGHỆ THÔNG TIN\nĐẠI HỌC SƯ PHẠM KỸ THUẬT";
             lblSlogan.Font = new Font("Segoe UI", 12, FontStyle.Bold);
@@ -93,12 +93,12 @@ namespace QLDiemSV_GUI
             lblTieuDe.AutoSize = true;
             lblTieuDe.Location = new Point(460, 60);
 
-            // -- CỤM NHẬP USER (Đã chỉnh tọa độ không bị che chữ) --
+            // -- CỤM NHẬP USER --
             lblUserIcon = new Label();
             lblUserIcon.Text = "👤";
             lblUserIcon.Font = new Font("Segoe UI", 16);
             lblUserIcon.ForeColor = Color.FromArgb(0, 122, 204);
-            lblUserIcon.Location = new Point(400, 160); // Icon giữ nguyên
+            lblUserIcon.Location = new Point(400, 160);
             lblUserIcon.AutoSize = true;
 
             txtUser = new TextBox();
@@ -106,9 +106,9 @@ namespace QLDiemSV_GUI
             txtUser.Font = new Font("Segoe UI", 13);
             txtUser.ForeColor = Color.DimGray;
             txtUser.Text = "Tên đăng nhập";
-            // ĐÃ SỬA: Tăng X lên 460 (Cách icon 60px) cho thoáng
             txtUser.Location = new Point(460, 165);
-            txtUser.Width = 280; // Giảm độ rộng lại chút cho vừa khung
+            txtUser.Width = 280;
+
             // Sự kiện Placeholder & Đổi màu gạch chân
             txtUser.Enter += (s, e) => {
                 if (txtUser.Text == "Tên đăng nhập") { txtUser.Text = ""; txtUser.ForeColor = Color.Black; }
@@ -124,7 +124,7 @@ namespace QLDiemSV_GUI
             pnlUserLine.Size = new Size(340, 2);
             pnlUserLine.Location = new Point(400, 195);
 
-            // -- CỤM NHẬP PASS (Đã chỉnh tọa độ) --
+            // -- CỤM NHẬP PASS (CÓ CON MẮT) --
             lblPassIcon = new Label();
             lblPassIcon.Text = "🔒";
             lblPassIcon.Font = new Font("Segoe UI", 16);
@@ -137,15 +137,53 @@ namespace QLDiemSV_GUI
             txtPass.Font = new Font("Segoe UI", 13);
             txtPass.ForeColor = Color.DimGray;
             txtPass.Text = "Mật khẩu";
-            // ĐÃ SỬA: Tăng X lên 460
             txtPass.Location = new Point(460, 245);
-            txtPass.Width = 280;
+            txtPass.Width = 250; // Thu hẹp để chừa chỗ cho icon mắt
+
+            // --- NÚT CON MẮT HIỆN MẬT KHẨU ---
+            lblEye = new Label();
+            lblEye.Text = "👁"; // Icon mắt (Unicode)
+            lblEye.Font = new Font("Segoe UI", 12);
+            lblEye.ForeColor = Color.Gray;
+            lblEye.Location = new Point(710, 245); // Đặt cuối dòng
+            lblEye.AutoSize = true;
+            lblEye.Cursor = Cursors.Hand;
+            lblEye.BackColor = Color.Transparent;
+
+            // Sự kiện click con mắt
+            lblEye.Click += (s, e) => {
+                if (txtPass.Text != "Mật khẩu")
+                {
+                    if (txtPass.PasswordChar == '•')
+                    {
+                        txtPass.PasswordChar = '\0'; // Hiện
+                        lblEye.ForeColor = Color.FromArgb(0, 122, 204); // Mắt xanh
+                    }
+                    else
+                    {
+                        txtPass.PasswordChar = '•'; // Ẩn
+                        lblEye.ForeColor = Color.Gray; // Mắt xám
+                    }
+                }
+            };
+
             txtPass.Enter += (s, e) => {
-                if (txtPass.Text == "Mật khẩu") { txtPass.Text = ""; txtPass.PasswordChar = '•'; txtPass.ForeColor = Color.Black; }
+                if (txtPass.Text == "Mật khẩu")
+                {
+                    txtPass.Text = "";
+                    txtPass.PasswordChar = '•';
+                    txtPass.ForeColor = Color.Black;
+                    lblEye.ForeColor = Color.Gray; // Mặc định mắt xám khi nhập
+                }
                 pnlPassLine.BackColor = Color.FromArgb(0, 122, 204);
             };
             txtPass.Leave += (s, e) => {
-                if (txtPass.Text == "") { txtPass.Text = "Mật khẩu"; txtPass.PasswordChar = '\0'; txtPass.ForeColor = Color.DimGray; }
+                if (txtPass.Text == "")
+                {
+                    txtPass.Text = "Mật khẩu";
+                    txtPass.PasswordChar = '\0';
+                    txtPass.ForeColor = Color.DimGray;
+                }
                 pnlPassLine.BackColor = Color.Silver;
             };
 
@@ -154,7 +192,7 @@ namespace QLDiemSV_GUI
             pnlPassLine.Size = new Size(340, 2);
             pnlPassLine.Location = new Point(400, 275);
 
-            // -- NÚT ĐĂNG NHẬP (Vẽ Gradient) --
+            // -- NÚT ĐĂNG NHẬP --
             btnLogin = new Button();
             btnLogin.Text = "ĐĂNG NHẬP";
             btnLogin.Font = new Font("Segoe UI", 12, FontStyle.Bold);
@@ -164,7 +202,7 @@ namespace QLDiemSV_GUI
             btnLogin.Size = new Size(340, 50);
             btnLogin.Location = new Point(400, 330);
             btnLogin.Cursor = Cursors.Hand;
-            btnLogin.Paint += new PaintEventHandler(btnLogin_Paint); // Vẽ màu nút
+            btnLogin.Paint += new PaintEventHandler(btnLogin_Paint);
             btnLogin.Click += new EventHandler(this.btnLogin_Click);
 
             // -- LINK QUÊN MẬT KHẨU --
@@ -178,7 +216,7 @@ namespace QLDiemSV_GUI
             lnkQuenMatKhau.Cursor = Cursors.Hand;
             lnkQuenMatKhau.Click += (s, e) => MessageBox.Show("Vui lòng liên hệ Giáo vụ Khoa để được cấp lại mật khẩu!", "Hỗ trợ");
 
-            // -- NÚT THOÁT (Góc trên phải) --
+            // -- NÚT THOÁT --
             btnExit = new Button();
             btnExit.Text = "X";
             btnExit.Font = new Font("Segoe UI", 14, FontStyle.Bold);
@@ -201,10 +239,15 @@ namespace QLDiemSV_GUI
             this.Controls.Add(pnlUserLine);
             this.Controls.Add(lblPassIcon);
             this.Controls.Add(txtPass);
+            this.Controls.Add(lblEye); // <--- Add con mắt
             this.Controls.Add(pnlPassLine);
             this.Controls.Add(btnLogin);
             this.Controls.Add(lnkQuenMatKhau);
             this.Controls.Add(btnExit);
+
+            // --- QUAN TRỌNG: KÍCH HOẠT PHÍM ENTER ---
+            this.AcceptButton = btnLogin;
+            // Dòng này giúp khi nhấn Enter trên bàn phím thì tự động gọi sự kiện Click của btnLogin
 
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -215,16 +258,9 @@ namespace QLDiemSV_GUI
         // 1. Vẽ nền Gradient cho Panel Trái
         private void pnlLeft_Paint(object sender, PaintEventArgs e)
         {
-            // Màu Xanh đậm HCMUTE -> Xanh sáng
             Color colorStart = Color.FromArgb(0, 51, 153);
             Color colorEnd = Color.FromArgb(0, 153, 204);
-
-            LinearGradientBrush brush = new LinearGradientBrush(
-                pnlLeft.ClientRectangle,
-                colorStart,
-                colorEnd,
-                45F); // Góc nghiêng 45 độ
-
+            LinearGradientBrush brush = new LinearGradientBrush(pnlLeft.ClientRectangle, colorStart, colorEnd, 45F);
             e.Graphics.FillRectangle(brush, pnlLeft.ClientRectangle);
         }
 
@@ -233,16 +269,9 @@ namespace QLDiemSV_GUI
         {
             Color colorStart = Color.FromArgb(0, 153, 204);
             Color colorEnd = Color.FromArgb(0, 51, 153);
-
-            LinearGradientBrush brush = new LinearGradientBrush(
-                btnLogin.ClientRectangle,
-                colorStart,
-                colorEnd,
-                0F); // Nằm ngang
-
+            LinearGradientBrush brush = new LinearGradientBrush(btnLogin.ClientRectangle, colorStart, colorEnd, 0F);
             e.Graphics.FillRectangle(brush, btnLogin.ClientRectangle);
 
-            // Vẽ chữ lên trên nền màu
             TextRenderer.DrawText(e.Graphics, btnLogin.Text, btnLogin.Font,
                 btnLogin.ClientRectangle, btnLogin.ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
         }
@@ -262,11 +291,9 @@ namespace QLDiemSV_GUI
 
             try
             {
-                // Gọi BUS kiểm tra
                 if (busTaiKhoan.CheckLogin(user, pass))
                 {
                     string quyen = busTaiKhoan.GetQuyen(user);
-
                     MessageBox.Show("Đăng nhập thành công!\nXin chào: " + quyen, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     this.Hide();
@@ -278,6 +305,7 @@ namespace QLDiemSV_GUI
                     txtPass.Text = "Mật khẩu";
                     txtPass.PasswordChar = '\0';
                     txtPass.ForeColor = Color.DimGray;
+                    lblEye.ForeColor = Color.Gray; // Reset mắt
                     pnlPassLine.BackColor = Color.Silver;
                 }
                 else
@@ -302,18 +330,6 @@ namespace QLDiemSV_GUI
         {
             ReleaseCapture();
             SendMessage(this.Handle, 0x112, 0xf012, 0);
-        }
-
-        private void InitializeComponent()
-        {
-            this.SuspendLayout();
-            // 
-            // frmDangNhap
-            // 
-            this.ClientSize = new System.Drawing.Size(531, 253);
-            this.Name = "frmDangNhap";
-            this.ResumeLayout(false);
-
         }
     }
 }

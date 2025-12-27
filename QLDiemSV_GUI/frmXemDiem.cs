@@ -13,8 +13,8 @@ namespace QLDiemSV_GUI
         private Label lblHeader, lblGPA;
         private DataGridView dgvDiem;
 
-        private string _mssv; // Mã sinh viên đang đăng nhập
-        BUS_KetQua busKQ = new BUS_KetQua();
+        private string _mssv;
+        private BUS_KetQua busKQ = new BUS_KetQua();
 
         public frmXemDiem(string mssv)
         {
@@ -29,7 +29,7 @@ namespace QLDiemSV_GUI
             this.BackColor = Color.FromArgb(242, 244, 248);
             this.FormBorderStyle = FormBorderStyle.None;
 
-            // 1. TABLE (ADD ĐẦU TIÊN ĐỂ KHÔNG BỊ CHE)
+            // 1. TABLE
             pnlTable = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
 
             dgvDiem = new DataGridView
@@ -39,7 +39,7 @@ namespace QLDiemSV_GUI
                 BorderStyle = BorderStyle.None,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                ReadOnly = true, // Sinh viên chỉ được xem
+                ReadOnly = true,
                 AllowUserToAddRows = false,
                 RowHeadersVisible = false,
                 EnableHeadersVisualStyles = false,
@@ -52,7 +52,7 @@ namespace QLDiemSV_GUI
             pnlTable.Controls.Add(dgvDiem);
             this.Controls.Add(pnlTable);
 
-            // 2. FOOTER (HIỂN THỊ GPA)
+            // 2. FOOTER (GPA)
             pnlFooter = new Panel { Dock = DockStyle.Bottom, Height = 60, BackColor = Color.White };
             pnlFooter.Paint += (s, e) => { e.Graphics.DrawLine(Pens.LightGray, 0, 0, pnlFooter.Width, 0); };
 
@@ -69,6 +69,7 @@ namespace QLDiemSV_GUI
 
             // 3. HEADER
             pnlHeader = new Panel { Dock = DockStyle.Top, Height = 50, BackColor = Color.FromArgb(242, 244, 248) };
+            pnlHeader.Paint += (s, e) => { e.Graphics.DrawLine(new Pen(Color.FromArgb(12, 59, 124), 2), 15, 40, 250, 40); };
             lblHeader = new Label
             {
                 Text = "  ➤  KẾT QUẢ HỌC TẬP CÁ NHÂN",
@@ -81,6 +82,11 @@ namespace QLDiemSV_GUI
             };
             pnlHeader.Controls.Add(lblHeader);
             this.Controls.Add(pnlHeader);
+
+            // Sắp xếp lớp
+            pnlHeader.SendToBack();
+            pnlFooter.SendToBack();
+            pnlTable.BringToFront();
         }
 
         private void LoadData()
@@ -88,7 +94,6 @@ namespace QLDiemSV_GUI
             DataTable dt = busKQ.GetDiemBySinhVien(_mssv);
             dgvDiem.DataSource = dt;
 
-            // Đặt tên cột tiếng Việt cho đẹp
             if (dt != null && dt.Columns.Count > 0)
             {
                 dgvDiem.Columns["MaMon"].HeaderText = "Mã MH";
@@ -96,17 +101,17 @@ namespace QLDiemSV_GUI
                 dgvDiem.Columns["SoTinChi"].HeaderText = "TC";
                 dgvDiem.Columns["HocKy"].HeaderText = "HK";
                 dgvDiem.Columns["NamHoc"].HeaderText = "Năm Học";
-                dgvDiem.Columns["DiemChuyenCan"].HeaderText = "Điểm CC";
+
+                // --- ĐÃ XÓA CỘT DIEMCHUYENCAN ---
                 dgvDiem.Columns["DiemGiuaKy"].HeaderText = "Giữa Kỳ";
                 dgvDiem.Columns["DiemCuoiKy"].HeaderText = "Cuối Kỳ";
+
                 dgvDiem.Columns["DiemTongKet"].HeaderText = "Tổng Kết";
                 dgvDiem.Columns["DiemChu"].HeaderText = "Điểm Chữ";
 
-                // Tô màu cột Tổng kết
                 dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.BackColor = Color.LightYellow;
                 dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
 
-                // Tính GPA
                 TinhGPA(dt);
             }
         }
@@ -118,14 +123,12 @@ namespace QLDiemSV_GUI
 
             foreach (DataRow row in dt.Rows)
             {
-                // Chỉ tính những môn đã có điểm tổng kết
                 if (row["DiemTongKet"] != DBNull.Value)
                 {
                     double diemTK = Convert.ToDouble(row["DiemTongKet"]);
                     int tinChi = Convert.ToInt32(row["SoTinChi"]);
 
-                    // Quy đổi sang hệ 4 (đơn giản hóa: Điểm 10 -> Hệ 4)
-                    // Công thức chuẩn: <4:0, 4-5.4:1, 5.5-6.9:2, 7-8.4:3, >8.5:4
+                    // Quy đổi Hệ 4
                     double diemHe4 = 0;
                     if (diemTK >= 8.5) diemHe4 = 4.0;
                     else if (diemTK >= 7.0) diemHe4 = 3.0;

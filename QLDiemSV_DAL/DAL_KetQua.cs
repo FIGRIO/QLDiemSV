@@ -40,30 +40,27 @@ namespace QLDiemSV_DAL
         // 4. Lấy bảng điểm đầy đủ của một lớp
         public DataTable GetBangDiem(string maLHP)
         {
-            // Lấy thông tin sinh viên + Các cột điểm
             string sql = string.Format(@"
-                SELECT k.MSSV, s.HoTen, 
-                       k.DiemChuyenCan, k.DiemGiuaKy, k.DiemCuoiKy, 
-                       k.DiemTongKet, k.DiemChu, k.MaLHP
-                FROM KetQua k
-                JOIN SinhVien s ON k.MSSV = s.MSSV
-                WHERE k.MaLHP = '{0}'", maLHP);
+        SELECT k.MSSV, s.HoTen, 
+               k.DiemGiuaKy, k.DiemCuoiKy, 
+               k.DiemTongKet, k.DiemChu, k.MaLHP
+        FROM KetQua k
+        JOIN SinhVien s ON k.MSSV = s.MSSV
+        WHERE k.MaLHP = '{0}'", maLHP);
             return GetDataTable(sql);
         }
 
         // 5. Cập nhật điểm số (Lưu điểm)
-        public bool CapNhatDiem(string maLHP, string mssv, float cc, float gk, float ck, float tk, string chu)
+        public bool CapNhatDiem(string maLHP, string mssv, float gk, float ck, float tk, string chu)
         {
-            // Sử dụng CultureInfo.InvariantCulture để đảm bảo số thập phân dùng dấu chấm (.)
             string sql = string.Format(CultureInfo.InvariantCulture,
                 @"UPDATE KetQua 
-                  SET DiemChuyenCan = {2}, 
-                      DiemGiuaKy = {3}, 
-                      DiemCuoiKy = {4}, 
-                      DiemTongKet = {5}, 
-                      DiemChu = '{6}'
-                  WHERE MaLHP = '{0}' AND MSSV = '{1}'",
-                maLHP, mssv, cc, gk, ck, tk, chu);
+          SET DiemGiuaKy = {2}, 
+              DiemCuoiKy = {3}, 
+              DiemTongKet = {4}, 
+              DiemChu = '{5}'
+          WHERE MaLHP = '{0}' AND MSSV = '{1}'",
+                maLHP, mssv, gk, ck, tk, chu);
 
             return ExecuteNonQuery(sql) > 0;
         }
@@ -71,10 +68,9 @@ namespace QLDiemSV_DAL
         // 6. Xem kết quả học tập của một sinh viên (Dùng cho SV xem điểm)
         public DataTable GetDiemBySinhVien(string mssv)
         {
-            // Lấy Mã môn, Tên môn, Số tín chỉ và các đầu điểm
             string sql = string.Format(@"
         SELECT m.MaMon, m.TenMon, m.SoTinChi, l.HocKy, l.NamHoc,
-               k.DiemChuyenCan, k.DiemGiuaKy, k.DiemCuoiKy, 
+               k.DiemGiuaKy, k.DiemCuoiKy, 
                k.DiemTongKet, k.DiemChu
         FROM KetQua k
         JOIN LopHocPhan l ON k.MaLHP = l.MaLHP

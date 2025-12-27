@@ -9,7 +9,7 @@ namespace QLDiemSV_GUI
     public partial class frmNhapDiem : Form
     {
         // --- CONTROLS ---
-        private Panel pnlHeader, pnlFilter, pnlControl, pnlTable; // Thêm pnlFilter
+        private Panel pnlHeader, pnlFilter, pnlControl, pnlTable;
         private Label lblHeader, lblChonLop, lblTyLe, lblNamHoc, lblHocKy;
         private ComboBox cboLopHP, cboNamHoc, cboHocKy;
         private Button btnLuu;
@@ -66,7 +66,7 @@ namespace QLDiemSV_GUI
             this.Controls.Add(pnlTable);
 
             // =========================================================================
-            // 2. PANEL CONTROL (CHỌN LỚP ĐỂ NHẬP) - ADD THỨ HAI
+            // 2. PANEL CONTROL (CHỌN LỚP ĐỂ NHẬP)
             // =========================================================================
             pnlControl = new Panel { Dock = DockStyle.Top, Height = 80, BackColor = Color.White, Padding = new Padding(20) };
             pnlControl.Paint += (s, e) => { ControlPaint.DrawBorder(e.Graphics, pnlControl.ClientRectangle, Color.LightGray, ButtonBorderStyle.Solid); };
@@ -88,30 +88,29 @@ namespace QLDiemSV_GUI
             this.Controls.Add(pnlControl);
 
             // =========================================================================
-            // 3. PANEL FILTER (LỌC NĂM HỌC/HỌC KỲ) - ADD THỨ BA (MỚI)
+            // 3. PANEL FILTER (LỌC NĂM HỌC/HỌC KỲ)
             // =========================================================================
             pnlFilter = new Panel { Dock = DockStyle.Top, Height = 60, BackColor = Color.WhiteSmoke };
-            // Vẽ đường kẻ dưới
             pnlFilter.Paint += (s, e) => { e.Graphics.DrawLine(Pens.Silver, 0, 59, pnlFilter.Width, 59); };
 
             lblNamHoc = new Label { Text = "Năm học:", Location = new Point(30, 20), AutoSize = true, Font = new Font("Segoe UI", 10) };
             pnlFilter.Controls.Add(lblNamHoc);
 
             cboNamHoc = new ComboBox { Location = new Point(110, 17), Width = 150, Font = new Font("Segoe UI", 10), DropDownStyle = ComboBoxStyle.DropDownList };
-            cboNamHoc.SelectedIndexChanged += FilterDSLop; // Sự kiện lọc
+            cboNamHoc.SelectedIndexChanged += FilterDSLop;
             pnlFilter.Controls.Add(cboNamHoc);
 
             lblHocKy = new Label { Text = "Học kỳ:", Location = new Point(290, 20), AutoSize = true, Font = new Font("Segoe UI", 10) };
             pnlFilter.Controls.Add(lblHocKy);
 
             cboHocKy = new ComboBox { Location = new Point(350, 17), Width = 100, Font = new Font("Segoe UI", 10), DropDownStyle = ComboBoxStyle.DropDownList };
-            cboHocKy.SelectedIndexChanged += FilterDSLop; // Sự kiện lọc
+            cboHocKy.SelectedIndexChanged += FilterDSLop;
             pnlFilter.Controls.Add(cboHocKy);
 
             this.Controls.Add(pnlFilter);
 
             // =========================================================================
-            // 4. HEADER (ADD CUỐI CÙNG)
+            // 4. HEADER
             // =========================================================================
             pnlHeader = new Panel { Dock = DockStyle.Top, Height = 50, BackColor = Color.FromArgb(242, 244, 248) };
             pnlHeader.Paint += (s, e) => { e.Graphics.DrawLine(new Pen(Color.FromArgb(12, 59, 124), 2), 15, 40, 250, 40); };
@@ -133,16 +132,12 @@ namespace QLDiemSV_GUI
 
         private void LoadDataLop()
         {
-            // 1. Lấy danh sách lớp gốc (Tất cả hoặc theo GV)
             if (string.IsNullOrEmpty(_maGV) || _maGV.ToLower() == "admin")
                 _dtLopGoc = busLHP.GetDS();
             else
                 _dtLopGoc = busLHP.GetLopByGV(_maGV);
 
-            // 2. Nạp dữ liệu vào ComboBox Lọc (Năm/Học kỳ)
             LoadFilterCombos();
-
-            // 3. Lọc lần đầu (Tự động chọn lớp đầu tiên)
             FilterDSLop(null, null);
         }
 
@@ -156,11 +151,9 @@ namespace QLDiemSV_GUI
 
             if (_dtLopGoc != null)
             {
-                // Lấy danh sách Năm học duy nhất
                 DataTable dtNam = _dtLopGoc.DefaultView.ToTable(true, "NamHoc");
                 foreach (DataRow r in dtNam.Rows) cboNamHoc.Items.Add(r["NamHoc"].ToString());
 
-                // Lấy danh sách Học kỳ duy nhất
                 DataTable dtHK = _dtLopGoc.DefaultView.ToTable(true, "HocKy");
                 foreach (DataRow r in dtHK.Rows) cboHocKy.Items.Add(r["HocKy"].ToString());
             }
@@ -176,7 +169,7 @@ namespace QLDiemSV_GUI
         {
             if (_dtLopGoc == null) return;
 
-            string filter = "1=1"; // Mặc định lấy hết
+            string filter = "1=1";
 
             if (cboNamHoc.SelectedIndex > 0)
                 filter += string.Format(" AND NamHoc = '{0}'", cboNamHoc.SelectedItem);
@@ -184,16 +177,13 @@ namespace QLDiemSV_GUI
             if (cboHocKy.SelectedIndex > 0)
                 filter += string.Format(" AND HocKy = '{0}'", cboHocKy.SelectedItem);
 
-            // Áp dụng bộ lọc tạo ra DataView mới
             DataView dv = new DataView(_dtLopGoc);
             dv.RowFilter = filter;
 
-            // Gán lại cho ComboBox chọn lớp
             cboLopHP.DataSource = dv;
             cboLopHP.DisplayMember = "MaLHP";
             cboLopHP.ValueMember = "MaLHP";
 
-            // Nếu sau khi lọc không còn lớp nào
             if (dv.Count == 0)
             {
                 dgvDiem.DataSource = null;
@@ -206,7 +196,6 @@ namespace QLDiemSV_GUI
             if (cboLopHP.SelectedValue == null) return;
             string maLHP = cboLopHP.SelectedValue.ToString();
 
-            // SỬA LỖI BIẾN row: Khai báo trước khi dùng
             DataRowView row = (DataRowView)cboLopHP.SelectedItem;
 
             if (row["TyLeQuaTrinh"] != DBNull.Value && row["TyLeCuoiKy"] != DBNull.Value)
@@ -219,8 +208,6 @@ namespace QLDiemSV_GUI
             }
 
             lblTyLe.Text = string.Format("(Tỷ lệ QT/CK: {0}% - {1}%)", _tyLeQT * 100, _tyLeCK * 100);
-
-            // Load bảng điểm
             LoadBangDiem(maLHP);
         }
 
@@ -237,7 +224,7 @@ namespace QLDiemSV_GUI
                     if (dgvDiem.Columns.Contains("HoTen")) dgvDiem.Columns["HoTen"].ReadOnly = true;
                     if (dgvDiem.Columns.Contains("MaLHP")) dgvDiem.Columns["MaLHP"].Visible = false;
 
-                    if (dgvDiem.Columns.Contains("DiemChuyenCan")) dgvDiem.Columns["DiemChuyenCan"].HeaderText = "Điểm CC";
+                    // --- ĐÃ XÓA MAPPING DIEMCHUYENCAN ---
                     if (dgvDiem.Columns.Contains("DiemGiuaKy")) dgvDiem.Columns["DiemGiuaKy"].HeaderText = "Giữa Kỳ";
                     if (dgvDiem.Columns.Contains("DiemCuoiKy")) dgvDiem.Columns["DiemCuoiKy"].HeaderText = "Cuối Kỳ";
 
@@ -262,17 +249,20 @@ namespace QLDiemSV_GUI
             }
         }
 
-        // --- XỬ LÝ TÍNH ĐIỂM ---
+        // --- XỬ LÝ NHẬP LIỆU ---
         private void DgvDiem_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {
             e.Control.KeyPress -= new KeyPressEventHandler(Column_KeyPress);
-            // Cột 2,3,4 là điểm (CC, GK, CK)
-            if (dgvDiem.CurrentCell.ColumnIndex >= 2 && dgvDiem.CurrentCell.ColumnIndex <= 4)
+            string colName = dgvDiem.Columns[dgvDiem.CurrentCell.ColumnIndex].Name;
+
+            // CHỈ CHO PHÉP NHẬP SỐ Ở CỘT GIỮA KỲ VÀ CUỐI KỲ
+            if (colName == "DiemGiuaKy" || colName == "DiemCuoiKy")
             {
                 TextBox tb = e.Control as TextBox;
                 if (tb != null) tb.KeyPress += new KeyPressEventHandler(Column_KeyPress);
             }
         }
+
         private void Column_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && (e.KeyChar != '.')) e.Handled = true;
@@ -282,22 +272,28 @@ namespace QLDiemSV_GUI
         {
             if (e.RowIndex < 0) return;
             string colName = dgvDiem.Columns[e.ColumnIndex].Name;
-            if (colName == "DiemChuyenCan" || colName == "DiemGiuaKy" || colName == "DiemCuoiKy")
+
+            // Nếu sửa GK hoặc CK thì tính lại Tổng kết
+            if (colName == "DiemGiuaKy" || colName == "DiemCuoiKy")
             {
                 TinhDiemTongKet(e.RowIndex);
             }
         }
 
+        // --- LOGIC TÍNH ĐIỂM MỚI (BỎ CHUYÊN CẦN) ---
         private void TinhDiemTongKet(int rowIndex)
         {
             try
             {
                 DataGridViewRow r = dgvDiem.Rows[rowIndex];
-                float cc = r.Cells["DiemChuyenCan"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemChuyenCan"].Value);
+
+                // Lấy giá trị (Nếu null thì coi là 0)
                 float gk = r.Cells["DiemGiuaKy"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemGiuaKy"].Value);
                 float ck = r.Cells["DiemCuoiKy"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemCuoiKy"].Value);
 
-                float diemQuaTrinh = (cc + gk) / 2;
+                // --- LOGIC MỚI: Điểm quá trình chính là Điểm Giữa Kỳ ---
+                float diemQuaTrinh = gk;
+
                 float diemTongKet = (diemQuaTrinh * _tyLeQT) + (ck * _tyLeCK);
                 diemTongKet = (float)Math.Round(diemTongKet, 1);
 
@@ -327,13 +323,15 @@ namespace QLDiemSV_GUI
             foreach (DataGridViewRow r in dgvDiem.Rows)
             {
                 string mssv = r.Cells["MSSV"].Value.ToString();
-                float cc = r.Cells["DiemChuyenCan"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemChuyenCan"].Value);
+
+                // Lấy các điểm thành phần (Bỏ DiemChuyenCan)
                 float gk = r.Cells["DiemGiuaKy"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemGiuaKy"].Value);
                 float ck = r.Cells["DiemCuoiKy"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemCuoiKy"].Value);
                 float tk = r.Cells["DiemTongKet"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemTongKet"].Value);
                 string chu = r.Cells["DiemChu"].Value == DBNull.Value ? "" : r.Cells["DiemChu"].Value.ToString();
 
-                if (busKQ.CapNhatDiem(maLHP, mssv, cc, gk, ck, tk, chu)) count++;
+                // Gọi BUS Cập nhật (Lưu ý: BUS và DAL phải đã được sửa để không nhận tham số DiemCC)
+                if (busKQ.CapNhatDiem(maLHP, mssv, gk, ck, tk, chu)) count++;
             }
             MessageBox.Show("Đã lưu thành công " + count + " sinh viên!", "Thông báo");
         }

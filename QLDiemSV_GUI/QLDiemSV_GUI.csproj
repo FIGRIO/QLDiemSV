@@ -97,6 +97,12 @@
     <Compile Include="frmQLSinhVien.Designer.cs">
       <DependentUpon>frmQLSinhVien.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmThoiKhoaBieu.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmThoiKhoaBieu.Designer.cs">
+      <DependentUpon>frmThoiKhoaBieu.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmXemDiem.cs">
       <SubType>Form</SubType>
     </Compile>
