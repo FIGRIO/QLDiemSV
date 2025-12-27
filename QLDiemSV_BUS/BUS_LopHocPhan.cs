@@ -15,5 +15,7 @@ namespace QLDiemSV_BUS
         public DataTable TimKiem(string kw) => dal.TimKiem(kw);
 
         public DataTable GetLopByGV(string maGV) => dal.GetLopByGV(maGV);
+
+        public DataTable GetLichDay(string maGV) => dal.GetLichDay(maGV);
     }
 }

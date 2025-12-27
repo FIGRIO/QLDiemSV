@@ -61,6 +61,12 @@
     <Compile Include="frmDoiMatKhau.Designer.cs">
       <DependentUpon>frmDoiMatKhau.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmLichDay.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmLichDay.Designer.cs">
+      <DependentUpon>frmLichDay.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmMain.cs">
       <SubType>Form</SubType>
     </Compile>

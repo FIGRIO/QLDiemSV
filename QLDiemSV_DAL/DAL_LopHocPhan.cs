@@ -18,15 +18,28 @@ namespace QLDiemSV_DAL
 
         public bool Them(DTO_LopHocPhan lhp)
         {
-            string sql = string.Format("INSERT INTO LopHocPhan (MaLHP, MaMon, MaGV, HocKy, NamHoc, TyLeQuaTrinh, TyLeCuoiKy) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', {5}, {6})",
-                                       lhp.MaLHP, lhp.MaMon, lhp.MaGV, lhp.HocKy, lhp.NamHoc, lhp.TyLeQT, lhp.TyLeCK);
+            // Chú ý thứ tự các biến {0}, {1}... phải khớp
+            string sql = string.Format(@"
+        INSERT INTO LopHocPhan (MaLHP, MaMon, MaGV, HocKy, NamHoc, TyLeQuaTrinh, TyLeCuoiKy, Thu, TietBatDau, SoTiet, PhongHoc) 
+        VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', {5}, {6}, {7}, {8}, {9}, N'{10}')",
+                lhp.MaLHP, lhp.MaMon, lhp.MaGV, lhp.HocKy, lhp.NamHoc, lhp.TyLeQT, lhp.TyLeCK,
+                lhp.Thu, lhp.TietBD, lhp.SoTiet, lhp.Phong); // <--- Truyền thêm tham số mới
+
             return ExecuteNonQuery(sql) > 0;
         }
 
         public bool Sua(DTO_LopHocPhan lhp)
         {
-            string sql = string.Format("UPDATE LopHocPhan SET MaMon = '{0}', MaGV = '{1}', HocKy = '{2}', NamHoc = '{3}', TyLeQuaTrinh = {4}, TyLeCuoiKy = {5} WHERE MaLHP = '{6}'",
-                                       lhp.MaMon, lhp.MaGV, lhp.HocKy, lhp.NamHoc, lhp.TyLeQT, lhp.TyLeCK, lhp.MaLHP);
+            string sql = string.Format(@"
+        UPDATE LopHocPhan 
+        SET MaMon='{0}', MaGV='{1}', HocKy='{2}', NamHoc='{3}', 
+            TyLeQuaTrinh={4}, TyLeCuoiKy={5},
+            Thu={6}, TietBatDau={7}, SoTiet={8}, PhongHoc=N'{9}' -- <--- Update thêm cột mới
+        WHERE MaLHP='{10}'",
+                lhp.MaMon, lhp.MaGV, lhp.HocKy, lhp.NamHoc, lhp.TyLeQT, lhp.TyLeCK,
+                lhp.Thu, lhp.TietBD, lhp.SoTiet, lhp.Phong,
+                lhp.MaLHP);
+
             return ExecuteNonQuery(sql) > 0;
         }
 
@@ -57,6 +70,25 @@ namespace QLDiemSV_DAL
                 FROM LopHocPhan l
                 JOIN MonHoc m ON l.MaMon = m.MaMon
                 WHERE l.MaGV = '{0}'", maGV);
+
+            return GetDataTable(sql);
+        }
+
+        public DataTable GetLichDay(string maGV)
+        {
+            // BỔ SUNG: l.MaMon và m.SoTinChi vào câu Select
+            string sql = string.Format(@"
+        SELECT l.MaLHP, 
+               l.MaMon,      -- <--- Đã thêm lại cột này
+               m.TenMon, 
+               m.SoTinChi,   -- <--- Đã thêm lại cột này
+               l.HocKy, l.NamHoc, 
+               l.Thu, l.TietBatDau, l.SoTiet, l.PhongHoc,
+               (SELECT COUNT(*) FROM KetQua k WHERE k.MaLHP = l.MaLHP) as SiSo
+        FROM LopHocPhan l
+        JOIN MonHoc m ON l.MaMon = m.MaMon
+        WHERE l.MaGV = '{0}'
+        ORDER BY l.NamHoc DESC, l.HocKy DESC, l.Thu ASC", maGV);
 
             return GetDataTable(sql);
         }

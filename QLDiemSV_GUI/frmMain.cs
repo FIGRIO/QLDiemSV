@@ -195,7 +195,8 @@ namespace QLDiemSV_GUI
             {
                 AddLabelCategory("GIẢNG DẠY");
                 AddButton("Nhập điểm lớp dạy", (s, e) => OpenChildForm(new frmNhapDiem(_tenDangNhap), "Nhập điểm thành phần"));
-                AddButton("Lịch giảng dạy", null); // Chưa làm
+                AddButton("Xem lịch dạy", (s, e) => OpenChildForm(new frmLichDay(_tenDangNhap), "Lịch giảng dạy"));
+                AddButton("QL Sinh viên lớp dạy", (s, e) => OpenChildForm(new frmDangKyMonHoc(_tenDangNhap), "Quản lý lớp dạy"));
             }
             // --- TRƯỜNG HỢP 3: SINH VIÊN ---
             else
