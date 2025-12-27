@@ -8,6 +8,7 @@ namespace QLDiemSV_GUI
 {
     public partial class frmXemDiem : Form
     {
+        // Controls
         private Panel pnlHeader, pnlTable, pnlFooter;
         private Label lblHeader, lblGPA;
         private DataGridView dgvDiem;
@@ -31,7 +32,9 @@ namespace QLDiemSV_GUI
             this.BackColor = Color.FromArgb(242, 244, 248);
             this.FormBorderStyle = FormBorderStyle.None;
 
-            // 1. TABLE
+            // =========================================================================
+            // 1. TABLE (Lưới điểm - Add trước để nằm dưới)
+            // =========================================================================
             pnlTable = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
             dgvDiem = new DataGridView
             {
@@ -52,53 +55,111 @@ namespace QLDiemSV_GUI
             pnlTable.Controls.Add(dgvDiem);
             this.Controls.Add(pnlTable);
 
-            // 2. FOOTER
+            // =========================================================================
+            // 2. FOOTER (Điểm GPA)
+            // =========================================================================
             pnlFooter = new Panel { Dock = DockStyle.Bottom, Height = 60, BackColor = Color.White };
             pnlFooter.Paint += (s, e) => { e.Graphics.DrawLine(Pens.LightGray, 0, 0, pnlFooter.Width, 0); };
-            lblGPA = new Label { Text = "Điểm trung bình tích lũy (GPA): ...", Font = new Font("Segoe UI", 12, FontStyle.Bold), ForeColor = Color.Red, AutoSize = true, Location = new Point(20, 20) };
+
+            lblGPA = new Label
+            {
+                Text = "Điểm trung bình tích lũy (GPA): ...",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = Color.Red,
+                AutoSize = true,
+                Location = new Point(20, 20)
+            };
             pnlFooter.Controls.Add(lblGPA);
             this.Controls.Add(pnlFooter);
 
-            // 3. HEADER
+            // =========================================================================
+            // 3. HEADER (SỬA LẠI ĐỂ HIỆN NÚT)
+            // =========================================================================
             pnlHeader = new Panel { Dock = DockStyle.Top, Height = 50, BackColor = Color.FromArgb(242, 244, 248) };
             pnlHeader.Paint += (s, e) => { e.Graphics.DrawLine(new Pen(Color.FromArgb(12, 59, 124), 2), 15, 40, 250, 40); };
-            lblHeader = new Label { Text = "  ➤  KẾT QUẢ HỌC TẬP CÁ NHÂN", Font = new Font("Segoe UI", 14, FontStyle.Bold), ForeColor = Color.FromArgb(12, 59, 124), AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(10, 0, 0, 0) };
+
+            // --- SỬA LỖI Ở ĐÂY: Dùng Dock.Left thay vì Fill ---
+            lblHeader = new Label
+            {
+                Text = "  ➤  KẾT QUẢ HỌC TẬP CÁ NHÂN",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(12, 59, 124),
+                AutoSize = true,
+                Dock = DockStyle.Left, // Chỉ chiếm phần bên trái, chừa chỗ cho nút
+                TextAlign = ContentAlignment.MiddleLeft,
+                Padding = new Padding(10, 13, 0, 0) // Căn chỉnh lề trên để chữ cân đối
+            };
             pnlHeader.Controls.Add(lblHeader);
 
-            // --- NÚT EXCEL ---
-            btnExcel = new Button { Text = "Excel", Location = new Point(800, 10), Size = new Size(80, 30), BackColor = Color.Green, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 9, FontStyle.Bold), Cursor = Cursors.Hand };
-            btnExcel.FlatAppearance.BorderSize = 0;
-            btnExcel.Click += (s, e) => XuatFile("Excel");
-            pnlHeader.Controls.Add(btnExcel);
+            // Tính vị trí nút dựa trên chiều rộng form
+            int btnY = 10;
+            int btnW = 80;
+            int margin = 15;
+            int rightPos = this.ClientSize.Width - margin;
 
-            // --- NÚT PDF ---
-            btnPdf = new Button { Text = "PDF", Location = new Point(890, 10), Size = new Size(80, 30), BackColor = Color.Red, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 9, FontStyle.Bold), Cursor = Cursors.Hand };
+            // --- NÚT PDF (Ngoài cùng bên phải) ---
+            btnPdf = new Button
+            {
+                Text = "PDF",
+                Size = new Size(btnW, 30),
+                Location = new Point(rightPos - btnW, btnY),
+                BackColor = Color.FromArgb(220, 53, 69),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                Cursor = Cursors.Hand,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right // Neo vào góc phải để không bị trôi khi phóng to
+            };
             btnPdf.FlatAppearance.BorderSize = 0;
             btnPdf.Click += (s, e) => XuatFile("PDF");
             pnlHeader.Controls.Add(btnPdf);
 
+            // --- NÚT EXCEL (Bên trái nút PDF) ---
+            btnExcel = new Button
+            {
+                Text = "Excel",
+                Size = new Size(btnW, 30),
+                Location = new Point(rightPos - btnW - 10 - btnW, btnY),
+                BackColor = Color.FromArgb(40, 167, 69),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                Cursor = Cursors.Hand,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+            btnExcel.FlatAppearance.BorderSize = 0;
+            btnExcel.Click += (s, e) => XuatFile("Excel");
+            pnlHeader.Controls.Add(btnExcel);
+
+            // Đảm bảo nút nằm trên cùng (không bị cái gì đè)
+            btnPdf.BringToFront();
+            btnExcel.BringToFront();
+
             this.Controls.Add(pnlHeader);
 
-            pnlHeader.SendToBack();
-            pnlFooter.SendToBack();
-            pnlTable.BringToFront();
+            // Sắp xếp lớp layout chính
+            pnlHeader.SendToBack(); // Header nằm trên cùng màn hình
+            pnlFooter.SendToBack(); // Footer nằm dưới cùng màn hình
+            pnlTable.BringToFront(); // Table fill vào giữa
         }
 
         private void XuatFile(string loaiFile)
         {
             DataTable dt = (DataTable)dgvDiem.DataSource;
-            if (dt == null || dt.Rows.Count == 0) return;
+            if (dt == null || dt.Rows.Count == 0) { MessageBox.Show("Không có dữ liệu!"); return; }
 
+            // Tạo bảng tạm để đổi tên cột
             DataTable dtPrint = dt.Copy();
-            dtPrint.Columns["MaMon"].ColumnName = "Mã Môn";
-            dtPrint.Columns["TenMon"].ColumnName = "Tên Môn Học";
-            dtPrint.Columns["SoTinChi"].ColumnName = "Số TC";
-            dtPrint.Columns["HocKy"].ColumnName = "Học Kỳ";
-            dtPrint.Columns["NamHoc"].ColumnName = "Năm Học";
-            dtPrint.Columns["DiemGiuaKy"].ColumnName = "Giữa Kỳ";
-            dtPrint.Columns["DiemCuoiKy"].ColumnName = "Cuối Kỳ";
-            dtPrint.Columns["DiemTongKet"].ColumnName = "Tổng Kết";
-            dtPrint.Columns["DiemChu"].ColumnName = "Điểm Chữ";
+
+            if (dtPrint.Columns.Contains("MaMon")) dtPrint.Columns["MaMon"].ColumnName = "Mã Môn";
+            if (dtPrint.Columns.Contains("TenMon")) dtPrint.Columns["TenMon"].ColumnName = "Tên Môn Học";
+            if (dtPrint.Columns.Contains("SoTinChi")) dtPrint.Columns["SoTinChi"].ColumnName = "TC";
+            if (dtPrint.Columns.Contains("HocKy")) dtPrint.Columns["HocKy"].ColumnName = "HK";
+            if (dtPrint.Columns.Contains("NamHoc")) dtPrint.Columns["NamHoc"].ColumnName = "Năm Học";
+            if (dtPrint.Columns.Contains("DiemGiuaKy")) dtPrint.Columns["DiemGiuaKy"].ColumnName = "Giữa Kỳ";
+            if (dtPrint.Columns.Contains("DiemCuoiKy")) dtPrint.Columns["DiemCuoiKy"].ColumnName = "Cuối Kỳ";
+            if (dtPrint.Columns.Contains("DiemTongKet")) dtPrint.Columns["DiemTongKet"].ColumnName = "Tổng Kết";
+            if (dtPrint.Columns.Contains("DiemChu")) dtPrint.Columns["DiemChu"].ColumnName = "Điểm Chữ";
 
             string title = "KẾT QUẢ HỌC TẬP - " + _mssv;
 
@@ -117,12 +178,16 @@ namespace QLDiemSV_GUI
                 dgvDiem.Columns["SoTinChi"].HeaderText = "TC";
                 dgvDiem.Columns["HocKy"].HeaderText = "HK";
                 dgvDiem.Columns["NamHoc"].HeaderText = "Năm Học";
+
                 dgvDiem.Columns["DiemGiuaKy"].HeaderText = "Giữa Kỳ";
                 dgvDiem.Columns["DiemCuoiKy"].HeaderText = "Cuối Kỳ";
+
                 dgvDiem.Columns["DiemTongKet"].HeaderText = "Tổng Kết";
                 dgvDiem.Columns["DiemChu"].HeaderText = "Điểm Chữ";
+
                 dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.BackColor = Color.LightYellow;
                 dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+
                 TinhGPA(dt);
             }
         }
@@ -142,6 +207,7 @@ namespace QLDiemSV_GUI
                     else if (diemTK >= 7.0) diemHe4 = 3.0;
                     else if (diemTK >= 5.5) diemHe4 = 2.0;
                     else if (diemTK >= 4.0) diemHe4 = 1.0;
+
                     tongDiem += diemHe4 * tinChi;
                     tongTinChi += tinChi;
                 }

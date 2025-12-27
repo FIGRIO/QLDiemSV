@@ -13,6 +13,10 @@ namespace QLDiemSV_GUI
         private Label lblHeader, lblNamHoc, lblHocKy;
         private ComboBox cboNamHoc, cboHocKy;
         private Button btnXem;
+
+        // --- 2 NÚT XUẤT FILE MỚI ---
+        private Button btnExcel, btnPdf;
+
         private TableLayoutPanel tblLich; // Lưới hiển thị thời khóa biểu
 
         // Data
@@ -33,7 +37,7 @@ namespace QLDiemSV_GUI
             this.FormBorderStyle = FormBorderStyle.None;
 
             // =========================================================================
-            // 1. FILTER PANEL (Chọn Năm học/Học kỳ)
+            // 1. FILTER PANEL (Thêm nút Excel/PDF vào đây)
             // =========================================================================
             pnlFilter = new Panel { Dock = DockStyle.Top, Height = 60, BackColor = Color.White };
             pnlFilter.Paint += (s, e) => { e.Graphics.DrawLine(Pens.Silver, 0, 59, pnlFilter.Width, 59); };
@@ -50,40 +54,49 @@ namespace QLDiemSV_GUI
             cboHocKy = new ComboBox { Location = new Point(350, 17), Width = 100, Font = new Font("Segoe UI", 10), DropDownStyle = ComboBoxStyle.DropDownList };
             pnlFilter.Controls.Add(cboHocKy);
 
+            // Nút Xem
             btnXem = new Button { Text = "Xem Lịch", Location = new Point(480, 15), Size = new Size(100, 30), BackColor = Color.FromArgb(12, 59, 124), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 9, FontStyle.Bold), Cursor = Cursors.Hand };
             btnXem.FlatAppearance.BorderSize = 0;
             btnXem.Click += (s, e) => VeLichHoc();
             pnlFilter.Controls.Add(btnXem);
 
+            // --- NÚT EXCEL ---
+            btnExcel = new Button { Text = "Excel", Location = new Point(600, 15), Size = new Size(80, 30), BackColor = Color.FromArgb(40, 167, 69), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 9, FontStyle.Bold), Cursor = Cursors.Hand };
+            btnExcel.FlatAppearance.BorderSize = 0;
+            btnExcel.Click += (s, e) => XuatFile("Excel");
+            pnlFilter.Controls.Add(btnExcel);
+
+            // --- NÚT PDF ---
+            btnPdf = new Button { Text = "PDF", Location = new Point(690, 15), Size = new Size(80, 30), BackColor = Color.FromArgb(220, 53, 69), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 9, FontStyle.Bold), Cursor = Cursors.Hand };
+            btnPdf.FlatAppearance.BorderSize = 0;
+            btnPdf.Click += (s, e) => XuatFile("PDF");
+            pnlFilter.Controls.Add(btnPdf);
+
             this.Controls.Add(pnlFilter);
 
             // =========================================================================
-            // 2. CONTENT PANEL (Chứa TableLayoutPanel)
+            // 2. CONTENT PANEL
             // =========================================================================
             pnlContent = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10), AutoScroll = true };
 
-            // Khởi tạo TableLayoutPanel
             tblLich = new TableLayoutPanel();
-            tblLich.Dock = DockStyle.Top; // Để Top để nó tự giãn chiều cao khi có nhiều dòng
+            tblLich.Dock = DockStyle.Top;
             tblLich.AutoSize = true;
             tblLich.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
             tblLich.BackColor = Color.White;
 
-            // Cấu hình cột (8 cột: 1 cột Tiết + 7 cột Thứ)
             tblLich.ColumnCount = 8;
-            tblLich.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 80F)); // Cột Tiết cố định 80px
-            for (int i = 0; i < 7; i++) tblLich.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 14.28F)); // Các cột Thứ chia đều phần còn lại
+            tblLich.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 80F));
+            for (int i = 0; i < 7; i++) tblLich.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 14.28F));
 
-            // Cấu hình hàng (13 hàng: 1 Header + 12 Tiết)
             tblLich.RowCount = 13;
-            // Chiều cao các dòng
-            for (int i = 0; i < 13; i++) tblLich.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F)); // Mỗi ô cao 50px
+            for (int i = 0; i < 13; i++) tblLich.RowStyles.Add(new RowStyle(SizeType.Absolute, 60F));
 
             pnlContent.Controls.Add(tblLich);
             this.Controls.Add(pnlContent);
 
             // =========================================================================
-            // 3. HEADER (Tiêu đề trang)
+            // 3. HEADER
             // =========================================================================
             pnlHeader = new Panel { Dock = DockStyle.Top, Height = 50, BackColor = Color.FromArgb(242, 244, 248) };
             pnlHeader.Paint += (s, e) => { e.Graphics.DrawLine(new Pen(Color.FromArgb(12, 59, 124), 2), 15, 40, 250, 40); };
@@ -91,52 +104,33 @@ namespace QLDiemSV_GUI
             pnlHeader.Controls.Add(lblHeader);
             this.Controls.Add(pnlHeader);
 
-            // =========================================================================
-            // QUAN TRỌNG: SẮP XẾP LỚP (Z-ORDER) ĐỂ KHÔNG BỊ ĐÈ
-            // =========================================================================
-            pnlHeader.SendToBack(); // Đẩy Header ra sau cùng (để chiếm chỗ trên cùng)
-            pnlFilter.SendToBack(); // Đẩy Filter ra sau Header
-            pnlContent.BringToFront(); // Đẩy Nội dung lên trên cùng để Fill vào phần trống còn lại
+            pnlHeader.SendToBack();
+            pnlFilter.SendToBack();
+            pnlContent.BringToFront();
         }
 
-        // --- HÀM 1: Lấy dữ liệu Năm học/Học kỳ thực tế từ DB ---
         private void LoadComboboxData()
         {
-            // 1. Lấy toàn bộ danh sách lớp
             DataTable dt = busLHP.GetDS();
-
-            cboNamHoc.Items.Clear();
-            cboHocKy.Items.Clear();
+            cboNamHoc.Items.Clear(); cboHocKy.Items.Clear();
 
             if (dt != null && dt.Rows.Count > 0)
             {
-                // 2. Lấy Năm học duy nhất (Distinct)
                 DataTable dtNam = dt.DefaultView.ToTable(true, "NamHoc");
-                foreach (DataRow r in dtNam.Rows)
-                {
-                    cboNamHoc.Items.Add(r["NamHoc"].ToString());
-                }
+                foreach (DataRow r in dtNam.Rows) cboNamHoc.Items.Add(r["NamHoc"].ToString());
 
-                // 3. Lấy Học kỳ duy nhất
                 DataTable dtHK = dt.DefaultView.ToTable(true, "HocKy");
-                foreach (DataRow r in dtHK.Rows)
-                {
-                    cboHocKy.Items.Add(r["HocKy"].ToString());
-                }
+                foreach (DataRow r in dtHK.Rows) cboHocKy.Items.Add(r["HocKy"].ToString());
             }
 
-            // 4. Chọn giá trị mặc định nếu có
             if (cboNamHoc.Items.Count > 0) cboNamHoc.SelectedIndex = 0;
             if (cboHocKy.Items.Count > 0) cboHocKy.SelectedIndex = 0;
         }
 
-        // --- HÀM 2: VẼ LỊCH HỌC (LOGIC CHÍNH) ---
         private void VeLichHoc()
         {
-            // 1. Reset lưới về trạng thái trắng
             tblLich.Controls.Clear();
 
-            // 2. Vẽ Header (Hàng 0: Thứ 2 -> CN)
             string[] thuArray = { "", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN" };
             for (int i = 0; i < thuArray.Length; i++)
             {
@@ -144,14 +138,12 @@ namespace QLDiemSV_GUI
                 tblLich.Controls.Add(lbl, i, 0);
             }
 
-            // 3. Vẽ Cột Tiết (Cột 0: Tiết 1 -> 12)
             for (int i = 1; i <= 12; i++)
             {
                 Label lbl = new Label { Text = "Tiết " + i, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 9), ForeColor = Color.Gray };
                 tblLich.Controls.Add(lbl, 0, i);
             }
 
-            // 4. Lấy dữ liệu từ CSDL
             string nam = cboNamHoc.Text;
             string hk = cboHocKy.Text;
             DataTable dt = busLHP.GetLichHocSinhVien(_mssv, nam, hk);
@@ -160,51 +152,96 @@ namespace QLDiemSV_GUI
             {
                 foreach (DataRow r in dt.Rows)
                 {
-                    // Bỏ qua nếu dữ liệu thiếu
                     if (r["Thu"] == DBNull.Value || r["TietBatDau"] == DBNull.Value) continue;
 
                     string tenMon = r["TenMon"].ToString();
                     string phong = r["PhongHoc"].ToString();
                     string gv = r["TenGV"].ToString();
 
-                    // --- SỬA LỖI: Dùng tên biến 'thuHoc' để không trùng với 'thuArray' ---
-                    int thuHoc = Convert.ToInt32(r["Thu"]); // 2,3,4...8
+                    int thuHoc = Convert.ToInt32(r["Thu"]);
                     int tietBD = Convert.ToInt32(r["TietBatDau"]);
                     int soTiet = Convert.ToInt32(r["SoTiet"]);
 
-                    // --- TÍNH TOÁN VỊ TRÍ TRONG LƯỚI ---
-                    // Cột: Thứ 2 -> Index 1, ... Thứ 7 -> Index 6, CN(8) -> Index 7
                     int colIndex = (thuHoc == 8) ? 7 : (thuHoc - 1);
                     int rowIndex = tietBD;
 
-                    // Tạo Control hiển thị (Button cho đẹp)
                     Button btnMon = new Button();
                     btnMon.Text = string.Format("{0}\n({1})\n{2}", tenMon, phong, gv);
                     btnMon.Dock = DockStyle.Fill;
                     btnMon.FlatStyle = FlatStyle.Flat;
                     btnMon.FlatAppearance.BorderSize = 0;
-                    btnMon.BackColor = Color.FromArgb(190, 227, 255); // Màu xanh nhạt dễ nhìn
+                    btnMon.BackColor = Color.FromArgb(190, 227, 255);
                     btnMon.Font = new Font("Segoe UI", 9);
                     btnMon.TextAlign = ContentAlignment.MiddleCenter;
 
-                    // Sự kiện Click xem chi tiết
                     btnMon.Click += (s, args) => MessageBox.Show($"Môn: {tenMon}\nGiảng viên: {gv}\nPhòng: {phong}\nThời gian: Thứ {thuHoc}, Tiết {tietBD}-{tietBD + soTiet - 1}", "Thông tin lớp học");
 
-                    // Add vào TableLayout tại vị trí (Cột, Hàng)
                     tblLich.Controls.Add(btnMon, colIndex, rowIndex);
+                    if (soTiet > 1) tblLich.SetRowSpan(btnMon, soTiet);
+                }
+            }
+        }
 
-                    // QUAN TRỌNG: Kéo giãn ô theo số tiết (RowSpan)
-                    if (soTiet > 1)
+        // --- HÀM XUẤT FILE ĐẶC BIỆT CHO THỜI KHÓA BIỂU ---
+        // Chuyển đổi dữ liệu danh sách thành bảng 2 chiều (Thứ x Tiết)
+        private void XuatFile(string type)
+        {
+            // 1. Tạo DataTable cấu trúc bảng TKB 
+            DataTable dtExport = new DataTable();
+            dtExport.Columns.Add("Tiết");
+            dtExport.Columns.Add("Thứ 2");
+            dtExport.Columns.Add("Thứ 3");
+            dtExport.Columns.Add("Thứ 4");
+            dtExport.Columns.Add("Thứ 5");
+            dtExport.Columns.Add("Thứ 6");
+            dtExport.Columns.Add("Thứ 7");
+            dtExport.Columns.Add("CN");
+
+            // Tạo 12 dòng trống cho 12 tiết
+            for (int i = 1; i <= 12; i++)
+            {
+                DataRow r = dtExport.NewRow();
+                r["Tiết"] = "Tiết " + i;
+                dtExport.Rows.Add(r);
+            }
+
+            // 2. Điền dữ liệu môn học vào bảng
+            string nam = cboNamHoc.Text;
+            string hk = cboHocKy.Text;
+            DataTable dtRaw = busLHP.GetLichHocSinhVien(_mssv, nam, hk);
+
+            if (dtRaw != null)
+            {
+                foreach (DataRow r in dtRaw.Rows)
+                {
+                    if (r["Thu"] == DBNull.Value || r["TietBatDau"] == DBNull.Value) continue;
+
+                    int thu = Convert.ToInt32(r["Thu"]); // 2..8
+                    int tietBD = Convert.ToInt32(r["TietBatDau"]);
+                    int soTiet = Convert.ToInt32(r["SoTiet"]);
+
+                    string noiDung = string.Format("{0}\n({1})", r["TenMon"], r["PhongHoc"]);
+
+                    // Xác định tên cột (Thứ 2 -> cột 1, CN -> cột 7)
+                    string colName = (thu == 8) ? "CN" : "Thứ " + thu;
+
+                    // Điền vào các ô tương ứng (từ tiết bắt đầu -> hết số tiết)
+                    // LƯU Ý: Đây là điền text vào Excel/PDF, không phải vẽ Button
+                    for (int k = 0; k < soTiet; k++)
                     {
-                        tblLich.SetRowSpan(btnMon, soTiet);
+                        int rowIndex = tietBD - 1 + k; // Index dòng bắt đầu từ 0
+                        if (rowIndex < 12)
+                        {
+                            dtExport.Rows[rowIndex][colName] = noiDung;
+                        }
                     }
                 }
             }
-            else
-            {
-                // Nếu không có dữ liệu thì thôi, lưới vẫn hiện khung trống
-                // Có thể MessageBox báo "Không tìm thấy lịch học" nếu muốn
-            }
+
+            // 3. Xuất file
+            string title = "THỜI KHÓA BIỂU - " + cboHocKy.Text + " - " + cboNamHoc.Text;
+            if (type == "Excel") ExcelHelper.XuatRaExcel(dtExport, "TKB", title);
+            else PdfHelper.XuatRaPdf(dtExport, title);
         }
     }
 }
