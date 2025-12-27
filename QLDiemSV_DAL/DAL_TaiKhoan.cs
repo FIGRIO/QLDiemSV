@@ -1,20 +1,29 @@
 ﻿using System.Data;
-using QLDiemSV_DTO; // Sử dụng DTO để lấy dữ liệu truyền vào
+using System.Data.SqlClient; // Thư viện quan trọng để dùng SqlParameter
+using QLDiemSV_DTO;
 
 namespace QLDiemSV_DAL
 {
     // Kế thừa từ DBConnect để sử dụng lại kết nối
     public class DAL_TaiKhoan : DBConnect
     {
-        // Hàm kiểm tra tài khoản có tồn tại không
+        // 1. Hàm kiểm tra đăng nhập (An toàn tuyệt đối)
         public bool KiemTraDangNhap(string tenDangNhap, string matKhau)
         {
-            // Viết câu truy vấn (Nên dùng Parameter để tránh SQL Injection, ở đây viết đơn giản để bạn dễ hiểu)
-            string sql = string.Format("SELECT * FROM TaiKhoan WHERE TenDangNhap = '{0}' AND MatKhau = '{1}'", tenDangNhap, matKhau);
+            // Sử dụng tham số @User và @Pass thay vì cộng chuỗi '{0}'
+            string sql = "SELECT * FROM TaiKhoan WHERE TenDangNhap = @User AND MatKhau = @Pass";
 
-            DataTable dt = this.GetDataTable(sql); // Gọi hàm lấy dữ liệu từ lớp cha DBConnect
+            // Tạo danh sách tham số để gửi xuống DBConnect
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@User", tenDangNhap),
+                new SqlParameter("@Pass", matKhau)
+            };
 
-            // Nếu bảng trả về có ít nhất 1 dòng -> Đăng nhập đúng
+            // Gọi hàm GetDataTable phiên bản mới (có truyền parameter)
+            DataTable dt = this.GetDataTable(sql, parameters);
+
+            // Nếu có dữ liệu trả về => Đăng nhập đúng
             if (dt != null && dt.Rows.Count > 0)
             {
                 return true;
@@ -22,11 +31,17 @@ namespace QLDiemSV_DAL
             return false;
         }
 
-        // Hàm lấy quyền hạn của tài khoản (Admin, GiangVien, hay SinhVien)
+        // 2. Hàm lấy quyền hạn (Admin, GiangVien, SinhVien)
         public string LayQuyenHan(string tenDangNhap)
         {
-            string sql = string.Format("SELECT Quyen FROM TaiKhoan WHERE TenDangNhap = '{0}'", tenDangNhap);
-            DataTable dt = this.GetDataTable(sql);
+            string sql = "SELECT Quyen FROM TaiKhoan WHERE TenDangNhap = @User";
+
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@User", tenDangNhap)
+            };
+
+            DataTable dt = this.GetDataTable(sql, parameters);
 
             if (dt != null && dt.Rows.Count > 0)
             {
@@ -35,10 +50,19 @@ namespace QLDiemSV_DAL
             return "";
         }
 
+        // 3. Hàm đổi mật khẩu
         public bool DoiMatKhau(string tenDangNhap, string matKhauMoi)
         {
-            string sql = string.Format("UPDATE TaiKhoan SET MatKhau = '{0}' WHERE TenDangNhap = '{1}'", matKhauMoi, tenDangNhap);
-            return ExecuteNonQuery(sql) > 0;
+            string sql = "UPDATE TaiKhoan SET MatKhau = @NewPass WHERE TenDangNhap = @User";
+
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+                new SqlParameter("@NewPass", matKhauMoi),
+                new SqlParameter("@User", tenDangNhap)
+            };
+
+            // Gọi hàm ExecuteNonQuery phiên bản mới
+            return this.ExecuteNonQuery(sql, parameters) > 0;
         }
     }
 }
