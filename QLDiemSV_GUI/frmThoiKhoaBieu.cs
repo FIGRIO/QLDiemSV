@@ -152,14 +152,14 @@ namespace QLDiemSV_GUI
             {
                 foreach (DataRow r in dt.Rows)
                 {
-                    if (r["Thu"] == DBNull.Value || r["TietBatDau"] == DBNull.Value) continue;
+                    if (r["Thu"] == DBNull.Value || r["TietBD"] == DBNull.Value) continue;
 
-                    string tenMon = r["TenMon"].ToString();
-                    string phong = r["PhongHoc"].ToString();
+                    string tenMon = r["TenMH"].ToString();
+                    string phong = r["Phong"].ToString();
                     string gv = r["TenGV"].ToString();
 
                     int thuHoc = Convert.ToInt32(r["Thu"]);
-                    int tietBD = Convert.ToInt32(r["TietBatDau"]);
+                    int tietBD = Convert.ToInt32(r["TietBD"]);
                     int soTiet = Convert.ToInt32(r["SoTiet"]);
 
                     int colIndex = (thuHoc == 8) ? 7 : (thuHoc - 1);
@@ -214,13 +214,13 @@ namespace QLDiemSV_GUI
             {
                 foreach (DataRow r in dtRaw.Rows)
                 {
-                    if (r["Thu"] == DBNull.Value || r["TietBatDau"] == DBNull.Value) continue;
+                    if (r["Thu"] == DBNull.Value || r["TietBD"] == DBNull.Value) continue;
 
                     int thu = Convert.ToInt32(r["Thu"]); // 2..8
-                    int tietBD = Convert.ToInt32(r["TietBatDau"]);
+                    int tietBD = Convert.ToInt32(r["TietBD"]);
                     int soTiet = Convert.ToInt32(r["SoTiet"]);
 
-                    string noiDung = string.Format("{0}\n({1})", r["TenMon"], r["PhongHoc"]);
+                    string noiDung = string.Format("{0}\n({1})", r["TenMH"], r["Phong"]);
 
                     // Xác định tên cột (Thứ 2 -> cột 1, CN -> cột 7)
                     string colName = (thu == 8) ? "CN" : "Thứ " + thu;

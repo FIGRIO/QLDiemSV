@@ -198,10 +198,10 @@ namespace QLDiemSV_GUI
             if (cboLopHP.SelectedValue == null) return;
             string maLHP = cboLopHP.SelectedValue.ToString();
             DataRowView row = (DataRowView)cboLopHP.SelectedItem;
-            if (row["TyLeQuaTrinh"] != DBNull.Value && row["TyLeCuoiKy"] != DBNull.Value)
+            if (row["TyLeQT"] != DBNull.Value && row["TyLeCK"] != DBNull.Value)
             {
-                float rawQT = Convert.ToSingle(row["TyLeQuaTrinh"]);
-                float rawCK = Convert.ToSingle(row["TyLeCuoiKy"]);
+                float rawQT = Convert.ToSingle(row["TyLeQT"]);
+                float rawCK = Convert.ToSingle(row["TyLeCK"]);
                 _tyLeQT = (rawQT > 1) ? rawQT / 100 : rawQT;
                 _tyLeCK = (rawCK > 1) ? rawCK / 100 : rawCK;
             }
@@ -220,9 +220,9 @@ namespace QLDiemSV_GUI
                     if (dgvDiem.Columns.Contains("MSSV")) dgvDiem.Columns["MSSV"].ReadOnly = true;
                     if (dgvDiem.Columns.Contains("HoTen")) dgvDiem.Columns["HoTen"].ReadOnly = true;
                     if (dgvDiem.Columns.Contains("MaLHP")) dgvDiem.Columns["MaLHP"].Visible = false;
-                    if (dgvDiem.Columns.Contains("DiemGiuaKy")) dgvDiem.Columns["DiemGiuaKy"].HeaderText = "Giữa Kỳ";
-                    if (dgvDiem.Columns.Contains("DiemCuoiKy")) dgvDiem.Columns["DiemCuoiKy"].HeaderText = "Cuối Kỳ";
-                    if (dgvDiem.Columns.Contains("DiemTongKet")) { dgvDiem.Columns["DiemTongKet"].ReadOnly = true; dgvDiem.Columns["DiemTongKet"].HeaderText = "Tổng Kết"; dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.BackColor = Color.LightYellow; dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold); }
+                    if (dgvDiem.Columns.Contains("DiemGK")) dgvDiem.Columns["DiemGK"].HeaderText = "Giữa Kỳ";
+                    if (dgvDiem.Columns.Contains("DiemCK")) dgvDiem.Columns["DiemCK"].HeaderText = "Cuối Kỳ";
+                    if (dgvDiem.Columns.Contains("DiemTK")) { dgvDiem.Columns["DiemTK"].ReadOnly = true; dgvDiem.Columns["DiemTK"].HeaderText = "Tổng Kết"; dgvDiem.Columns["DiemTK"].DefaultCellStyle.BackColor = Color.LightYellow; dgvDiem.Columns["DiemTK"].DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold); }
                     if (dgvDiem.Columns.Contains("DiemChu")) { dgvDiem.Columns["DiemChu"].ReadOnly = true; dgvDiem.Columns["DiemChu"].HeaderText = "Điểm Chữ"; }
                 }
             }
@@ -233,7 +233,7 @@ namespace QLDiemSV_GUI
         {
             e.Control.KeyPress -= new KeyPressEventHandler(Column_KeyPress);
             string colName = dgvDiem.Columns[dgvDiem.CurrentCell.ColumnIndex].Name;
-            if (colName == "DiemGiuaKy" || colName == "DiemCuoiKy")
+            if (colName == "DiemGK" || colName == "DiemCK")
             {
                 TextBox tb = e.Control as TextBox;
                 if (tb != null) tb.KeyPress += new KeyPressEventHandler(Column_KeyPress);
@@ -246,7 +246,7 @@ namespace QLDiemSV_GUI
         {
             if (e.RowIndex < 0) return;
             string colName = dgvDiem.Columns[e.ColumnIndex].Name;
-            if (colName == "DiemGiuaKy" || colName == "DiemCuoiKy") TinhDiemTongKet(e.RowIndex);
+            if (colName == "DiemGK" || colName == "DiemCK") TinhDiemTongKet(e.RowIndex);
         }
 
         private void TinhDiemTongKet(int rowIndex)
@@ -254,12 +254,12 @@ namespace QLDiemSV_GUI
             try
             {
                 DataGridViewRow r = dgvDiem.Rows[rowIndex];
-                float gk = r.Cells["DiemGiuaKy"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemGiuaKy"].Value);
-                float ck = r.Cells["DiemCuoiKy"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemCuoiKy"].Value);
+                float gk = r.Cells["DiemGK"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemGK"].Value);
+                float ck = r.Cells["DiemCK"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemCK"].Value);
                 float diemQuaTrinh = gk;
                 float diemTongKet = (diemQuaTrinh * _tyLeQT) + (ck * _tyLeCK);
                 diemTongKet = (float)Math.Round(diemTongKet, 1);
-                r.Cells["DiemTongKet"].Value = diemTongKet;
+                r.Cells["DiemTK"].Value = diemTongKet;
 
                 string diemChu = "";
                 if (diemTongKet >= 9.0) diemChu = "A+";
@@ -283,9 +283,9 @@ namespace QLDiemSV_GUI
             foreach (DataGridViewRow r in dgvDiem.Rows)
             {
                 string mssv = r.Cells["MSSV"].Value.ToString();
-                float gk = r.Cells["DiemGiuaKy"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemGiuaKy"].Value);
-                float ck = r.Cells["DiemCuoiKy"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemCuoiKy"].Value);
-                float tk = r.Cells["DiemTongKet"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemTongKet"].Value);
+                float gk = r.Cells["DiemGK"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemGK"].Value);
+                float ck = r.Cells["DiemCK"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemCK"].Value);
+                float tk = r.Cells["DiemTK"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemTK"].Value);
                 string chu = r.Cells["DiemChu"].Value == DBNull.Value ? "" : r.Cells["DiemChu"].Value.ToString();
                 if (busKQ.CapNhatDiem(maLHP, mssv, gk, ck, tk, chu)) count++;
             }

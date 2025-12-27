@@ -149,7 +149,59 @@ namespace QLDiemSV_GUI
         private void BtnTimKiem_Click(object sender, EventArgs e) { string k = txtTimKiem.Text.Trim(); if (string.IsNullOrEmpty(k) || k == PLACEHOLDER_TEXT) LoadData(); else dgvSinhVien.DataSource = busSV.TimKiemSV(k); }
         private void DgvSinhVien_CellClick(object sender, DataGridViewCellEventArgs e) { if (e.RowIndex >= 0) { var r = dgvSinhVien.Rows[e.RowIndex]; txtMSSV.Text = r.Cells["MSSV"].Value.ToString(); txtMSSV.Enabled = false; txtHoTen.Text = r.Cells["HoTen"].Value.ToString(); if (r.Cells["NgaySinh"].Value != DBNull.Value) dtpNgaySinh.Value = Convert.ToDateTime(r.Cells["NgaySinh"].Value); rdoNam.Checked = r.Cells["GioiTinh"].Value.ToString() == "Nam"; rdoNu.Checked = !rdoNam.Checked; txtEmail.Text = r.Cells["Email"].Value.ToString(); txtSDT.Text = r.Cells["SDT"].Value.ToString(); txtDiaChi.Text = r.Cells["DiaChi"].Value.ToString(); txtMaLop.Text = r.Cells["MaLop"].Value.ToString(); } }
         private bool CheckInput() { if (string.IsNullOrWhiteSpace(txtMSSV.Text) || string.IsNullOrWhiteSpace(txtHoTen.Text)) { MessageBox.Show("Thiếu thông tin!"); return false; } return true; }
-        private void BtnThem_Click(object sender, EventArgs e) { if (!CheckInput()) return; DTO_SinhVien sv = new DTO_SinhVien(txtMSSV.Text, txtHoTen.Text, dtpNgaySinh.Value, rdoNam.Checked ? "Nam" : "Nữ", txtEmail.Text, txtSDT.Text, txtDiaChi.Text, txtMaLop.Text); if (busSV.ThemSV(sv)) { MessageBox.Show("Thêm thành công!"); ResetControl(); } else MessageBox.Show("Lỗi thêm!"); }
+        private void BtnThem_Click(object sender, EventArgs e)
+        {
+            // 1. Kiểm tra nhập thiếu thông tin
+            if (!CheckInput()) return;
+
+            // 2. Tạo đối tượng Sinh viên từ giao diện
+            DTO_SinhVien sv = new DTO_SinhVien(
+                txtMSSV.Text,
+                txtHoTen.Text,
+                dtpNgaySinh.Value,
+                rdoNam.Checked ? "Nam" : "Nữ",
+                txtEmail.Text,
+                txtSDT.Text,
+                txtDiaChi.Text,
+                txtMaLop.Text
+            );
+
+            // 3. Dùng TRY-CATCH để bắt lỗi Database
+            try
+            {
+                if (busSV.ThemSV(sv))
+                {
+                    MessageBox.Show("Thêm sinh viên thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ResetControl();
+                }
+                else
+                {
+                    MessageBox.Show("Thêm thất bại! Vui lòng thử lại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Kiểm tra nội dung lỗi trả về từ SQL Server
+                if (ex.Message.Contains("FOREIGN KEY") && ex.Message.Contains("MaLop"))
+                {
+                    // Đây chính là lỗi bạn đang gặp
+                    MessageBox.Show($"Mã lớp '{txtMaLop.Text}' không tồn tại trong hệ thống!\nVui lòng kiểm tra lại danh sách lớp.",
+                                    "Lỗi nhập liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtMaLop.Focus(); // Đưa con trỏ chuột về ô Mã lớp để sửa
+                }
+                else if (ex.Message.Contains("PRIMARY KEY"))
+                {
+                    MessageBox.Show($"Mã sinh viên '{txtMSSV.Text}' đã tồn tại!",
+                                    "Trùng dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtMSSV.Focus();
+                }
+                else
+                {
+                    // Các lỗi khác (Mất mạng, lỗi Server...)
+                    MessageBox.Show("Lỗi hệ thống: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
         private void BtnSua_Click(object sender, EventArgs e) { if (txtMSSV.Enabled) return; DTO_SinhVien sv = new DTO_SinhVien(txtMSSV.Text, txtHoTen.Text, dtpNgaySinh.Value, rdoNam.Checked ? "Nam" : "Nữ", txtEmail.Text, txtSDT.Text, txtDiaChi.Text, txtMaLop.Text); if (busSV.SuaSV(sv)) { MessageBox.Show("Sửa thành công!"); ResetControl(); } else MessageBox.Show("Lỗi sửa!"); }
         private void BtnXoa_Click(object sender, EventArgs e) { if (txtMSSV.Enabled) return; if (MessageBox.Show("Xóa SV này?", "Cảnh báo", MessageBoxButtons.YesNo) == DialogResult.Yes) if (busSV.XoaSV(txtMSSV.Text)) { MessageBox.Show("Đã xóa!"); ResetControl(); } else MessageBox.Show("Lỗi xóa!"); }
     }

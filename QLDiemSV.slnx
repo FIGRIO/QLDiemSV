@@ -1,6 +1,6 @@
 <Solution>
-  <Project Path="D:/HocTap/Nam_3/DoAnCNTT/QLDiemSV/QLDiemSV_BUS/QLDiemSV_BUS.csproj" Id="41334419-b43e-4669-aad1-ea2c8e6db22d" />
-  <Project Path="D:/HocTap/Nam_3/DoAnCNTT/QLDiemSV/QLDiemSV_DAL/QLDiemSV_DAL.csproj" Id="57327538-5abe-4713-b89f-915e57a12efe" />
-  <Project Path="D:/HocTap/Nam_3/DoAnCNTT/QLDiemSV/QLDiemSV_DTO/QLDiemSV_DTO.csproj" Id="806b2166-5666-487e-9f04-45120e7f2aa8" />
-  <Project Path="D:/HocTap/Nam_3/DoAnCNTT/QLDiemSV/QLDiemSV_GUI/QLDiemSV_GUI.csproj" Id="114ff29e-ff8e-4b4d-88d6-316acf1df4d0" />
+  <Project Path="QLDiemSV_BUS/QLDiemSV_BUS.csproj" Id="41334419-b43e-4669-aad1-ea2c8e6db22d" />
+  <Project Path="QLDiemSV_DAL/QLDiemSV_DAL.csproj" Id="57327538-5abe-4713-b89f-915e57a12efe" />
+  <Project Path="QLDiemSV_DTO/QLDiemSV_DTO.csproj" Id="806b2166-5666-487e-9f04-45120e7f2aa8" />
+  <Project Path="QLDiemSV_GUI/QLDiemSV_GUI.csproj" Id="114ff29e-ff8e-4b4d-88d6-316acf1df4d0" />
 </Solution>

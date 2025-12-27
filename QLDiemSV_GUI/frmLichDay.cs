@@ -128,14 +128,14 @@ namespace QLDiemSV_GUI
                 {
                     SetColumnHeader("MaLHP", "Mã Lớp HP");
                     SetColumnHeader("MaMon", "Mã Môn");
-                    SetColumnHeader("TenMon", "Tên Môn Học", 200);
+                    SetColumnHeader("TenMH", "Tên Môn Học", 200);
                     SetColumnHeader("SoTinChi", "TC", 50);
                     SetColumnHeader("HocKy", "Học Kỳ", 70);
                     SetColumnHeader("NamHoc", "Năm Học");
                     SetColumnHeader("Thu", "Thứ", 50);
-                    SetColumnHeader("TietBatDau", "Tiết BĐ", 70);
+                    SetColumnHeader("TietBD", "Tiết BĐ", 70);
                     SetColumnHeader("SoTiet", "Số Tiết", 70);
-                    SetColumnHeader("PhongHoc", "Phòng");
+                    SetColumnHeader("Phong", "Phòng");
                     SetColumnHeader("SiSo", "Sĩ Số", 60);
                     LoadComboBoxFilter();
                 }

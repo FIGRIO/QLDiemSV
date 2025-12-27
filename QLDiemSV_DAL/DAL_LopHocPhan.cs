@@ -7,35 +7,40 @@ namespace QLDiemSV_DAL
     {
         public DataTable GetDS()
         {
-            // Kết bảng để lấy Tên Môn và Tên GV
+            // SỬA: 
+            // 1. Join MonHoc on l.MaMon = m.MaMH (Vì MonHoc dùng MaMH)
+            // 2. TenMon -> TenMH
+            // 3. TyLeQuaTrinh -> TyLeQT, TyLeCuoiKy -> TyLeCK
             string sql = @"
-                SELECT l.MaLHP, l.MaMon, m.TenMon, l.MaGV, g.HoTen, l.HocKy, l.NamHoc, l.TyLeQuaTrinh, l.TyLeCuoiKy
+                SELECT l.MaLHP, l.MaMon, m.TenMH, l.MaGV, g.HoTen, l.HocKy, l.NamHoc, l.TyLeQT, l.TyLeCK,
+                       l.Thu, l.TietBD, l.SoTiet, l.Phong
                 FROM LopHocPhan l
-                JOIN MonHoc m ON l.MaMon = m.MaMon
+                JOIN MonHoc m ON l.MaMon = m.MaMH 
                 JOIN GiangVien g ON l.MaGV = g.MaGV";
             return GetDataTable(sql);
         }
 
         public bool Them(DTO_LopHocPhan lhp)
         {
-            // Chú ý thứ tự các biến {0}, {1}... phải khớp
+            // SỬA: TyLeQT, TyLeCK, TietBD, Phong
             string sql = string.Format(@"
-        INSERT INTO LopHocPhan (MaLHP, MaMon, MaGV, HocKy, NamHoc, TyLeQuaTrinh, TyLeCuoiKy, Thu, TietBatDau, SoTiet, PhongHoc) 
-        VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', {5}, {6}, {7}, {8}, {9}, N'{10}')",
+                INSERT INTO LopHocPhan (MaLHP, MaMon, MaGV, HocKy, NamHoc, TyLeQT, TyLeCK, Thu, TietBD, SoTiet, Phong) 
+                VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', {5}, {6}, {7}, {8}, {9}, N'{10}')",
                 lhp.MaLHP, lhp.MaMon, lhp.MaGV, lhp.HocKy, lhp.NamHoc, lhp.TyLeQT, lhp.TyLeCK,
-                lhp.Thu, lhp.TietBD, lhp.SoTiet, lhp.Phong); // <--- Truyền thêm tham số mới
+                lhp.Thu, lhp.TietBD, lhp.SoTiet, lhp.Phong);
 
             return ExecuteNonQuery(sql) > 0;
         }
 
         public bool Sua(DTO_LopHocPhan lhp)
         {
+            // SỬA tên cột cho khớp DB
             string sql = string.Format(@"
-        UPDATE LopHocPhan 
-        SET MaMon='{0}', MaGV='{1}', HocKy='{2}', NamHoc='{3}', 
-            TyLeQuaTrinh={4}, TyLeCuoiKy={5},
-            Thu={6}, TietBatDau={7}, SoTiet={8}, PhongHoc=N'{9}' -- <--- Update thêm cột mới
-        WHERE MaLHP='{10}'",
+                UPDATE LopHocPhan 
+                SET MaMon='{0}', MaGV='{1}', HocKy='{2}', NamHoc='{3}', 
+                    TyLeQT={4}, TyLeCK={5},
+                    Thu={6}, TietBD={7}, SoTiet={8}, Phong=N'{9}'
+                WHERE MaLHP='{10}'",
                 lhp.MaMon, lhp.MaGV, lhp.HocKy, lhp.NamHoc, lhp.TyLeQT, lhp.TyLeCK,
                 lhp.Thu, lhp.TietBD, lhp.SoTiet, lhp.Phong,
                 lhp.MaLHP);
@@ -51,24 +56,24 @@ namespace QLDiemSV_DAL
 
         public DataTable TimKiem(string kw)
         {
-            // Tìm theo Mã LHP hoặc Tên Môn
+            // Sửa TenMon -> TenMH và Join condition
             string sql = string.Format(@"
-                SELECT l.MaLHP, l.MaMon, m.TenMon, l.MaGV, g.HoTen, l.HocKy, l.NamHoc, l.TyLeQuaTrinh, l.TyLeCuoiKy
+                SELECT l.MaLHP, l.MaMon, m.TenMH, l.MaGV, g.HoTen, l.HocKy, l.NamHoc, l.TyLeQT, l.TyLeCK
                 FROM LopHocPhan l
-                JOIN MonHoc m ON l.MaMon = m.MaMon
+                JOIN MonHoc m ON l.MaMon = m.MaMH
                 JOIN GiangVien g ON l.MaGV = g.MaGV
-                WHERE l.MaLHP LIKE '%{0}%' OR m.TenMon LIKE N'%{0}%'", kw);
+                WHERE l.MaLHP LIKE '%{0}%' OR m.TenMH LIKE N'%{0}%'", kw);
             return GetDataTable(sql);
         }
 
         public DataTable GetLopByGV(string maGV)
         {
-            // Chỉ lấy các lớp mà MaGV trùng với người đăng nhập
+            // Sửa TenMon -> TenMH, TyLeQT, TyLeCK
             string sql = string.Format(@"
-                SELECT l.MaLHP, l.MaMon, m.TenMon, l.HocKy, l.NamHoc, 
-                       l.TyLeQuaTrinh, l.TyLeCuoiKy
+                SELECT l.MaLHP, l.MaMon, m.TenMH, l.HocKy, l.NamHoc, 
+                       l.TyLeQT, l.TyLeCK
                 FROM LopHocPhan l
-                JOIN MonHoc m ON l.MaMon = m.MaMon
+                JOIN MonHoc m ON l.MaMon = m.MaMH
                 WHERE l.MaGV = '{0}'", maGV);
 
             return GetDataTable(sql);
@@ -76,35 +81,35 @@ namespace QLDiemSV_DAL
 
         public DataTable GetLichDay(string maGV)
         {
-            // BỔ SUNG: l.MaMon và m.SoTinChi vào câu Select
+            // Sửa TenMH, TietBD, Phong
             string sql = string.Format(@"
-        SELECT l.MaLHP, 
-               l.MaMon,      -- <--- Đã thêm lại cột này
-               m.TenMon, 
-               m.SoTinChi,   -- <--- Đã thêm lại cột này
-               l.HocKy, l.NamHoc, 
-               l.Thu, l.TietBatDau, l.SoTiet, l.PhongHoc,
-               (SELECT COUNT(*) FROM KetQua k WHERE k.MaLHP = l.MaLHP) as SiSo
-        FROM LopHocPhan l
-        JOIN MonHoc m ON l.MaMon = m.MaMon
-        WHERE l.MaGV = '{0}'
-        ORDER BY l.NamHoc DESC, l.HocKy DESC, l.Thu ASC", maGV);
+                SELECT l.MaLHP, 
+                       l.MaMon, 
+                       m.TenMH, 
+                       m.SoTinChi, 
+                       l.HocKy, l.NamHoc, 
+                       l.Thu, l.TietBD, l.SoTiet, l.Phong,
+                       (SELECT COUNT(*) FROM KetQua k WHERE k.MaLHP = l.MaLHP) as SiSo
+                FROM LopHocPhan l
+                JOIN MonHoc m ON l.MaMon = m.MaMH
+                WHERE l.MaGV = '{0}'
+                ORDER BY l.NamHoc DESC, l.HocKy DESC, l.Thu ASC", maGV);
 
             return GetDataTable(sql);
         }
 
         public DataTable GetLichHocSinhVien(string mssv, string namHoc, string hocKy)
         {
-            // Kết bảng KetQua (để lấy lớp SV học) với LopHocPhan (để lấy lịch)
+            // Sửa TenMH, TietBD, Phong
             string sql = string.Format(@"
-        SELECT l.MaLHP, m.TenMon, l.Thu, l.TietBatDau, l.SoTiet, l.PhongHoc, g.HoTen as TenGV
-        FROM KetQua k
-        JOIN LopHocPhan l ON k.MaLHP = l.MaLHP
-        JOIN MonHoc m ON l.MaMon = m.MaMon
-        JOIN GiangVien g ON l.MaGV = g.MaGV
-        WHERE k.MSSV = '{0}' 
-          AND l.NamHoc = '{1}' 
-          AND l.HocKy = '{2}'", mssv, namHoc, hocKy);
+                SELECT l.MaLHP, m.TenMH, l.Thu, l.TietBD, l.SoTiet, l.Phong, g.HoTen as TenGV
+                FROM KetQua k
+                JOIN LopHocPhan l ON k.MaLHP = l.MaLHP
+                JOIN MonHoc m ON l.MaMon = m.MaMH
+                JOIN GiangVien g ON l.MaGV = g.MaGV
+                WHERE k.MSSV = '{0}' 
+                  AND l.NamHoc = '{1}' 
+                  AND l.HocKy = '{2}'", mssv, namHoc, hocKy);
 
             return GetDataTable(sql);
         }

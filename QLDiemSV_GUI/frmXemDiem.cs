@@ -151,14 +151,14 @@ namespace QLDiemSV_GUI
             // Tạo bảng tạm để đổi tên cột
             DataTable dtPrint = dt.Copy();
 
-            if (dtPrint.Columns.Contains("MaMon")) dtPrint.Columns["MaMon"].ColumnName = "Mã Môn";
-            if (dtPrint.Columns.Contains("TenMon")) dtPrint.Columns["TenMon"].ColumnName = "Tên Môn Học";
+            if (dtPrint.Columns.Contains("MaMH")) dtPrint.Columns["MaMH"].ColumnName = "Mã Môn";
+            if (dtPrint.Columns.Contains("TenMH")) dtPrint.Columns["TenMH"].ColumnName = "Tên Môn Học";
             if (dtPrint.Columns.Contains("SoTinChi")) dtPrint.Columns["SoTinChi"].ColumnName = "TC";
             if (dtPrint.Columns.Contains("HocKy")) dtPrint.Columns["HocKy"].ColumnName = "HK";
             if (dtPrint.Columns.Contains("NamHoc")) dtPrint.Columns["NamHoc"].ColumnName = "Năm Học";
-            if (dtPrint.Columns.Contains("DiemGiuaKy")) dtPrint.Columns["DiemGiuaKy"].ColumnName = "Giữa Kỳ";
-            if (dtPrint.Columns.Contains("DiemCuoiKy")) dtPrint.Columns["DiemCuoiKy"].ColumnName = "Cuối Kỳ";
-            if (dtPrint.Columns.Contains("DiemTongKet")) dtPrint.Columns["DiemTongKet"].ColumnName = "Tổng Kết";
+            if (dtPrint.Columns.Contains("DiemGK")) dtPrint.Columns["DiemGK"].ColumnName = "Giữa Kỳ";
+            if (dtPrint.Columns.Contains("DiemCK")) dtPrint.Columns["DiemCK"].ColumnName = "Cuối Kỳ";
+            if (dtPrint.Columns.Contains("DiemTK")) dtPrint.Columns["DiemTK"].ColumnName = "Tổng Kết";
             if (dtPrint.Columns.Contains("DiemChu")) dtPrint.Columns["DiemChu"].ColumnName = "Điểm Chữ";
 
             string title = "KẾT QUẢ HỌC TẬP - " + _mssv;
@@ -173,20 +173,20 @@ namespace QLDiemSV_GUI
             dgvDiem.DataSource = dt;
             if (dt != null && dt.Columns.Count > 0)
             {
-                dgvDiem.Columns["MaMon"].HeaderText = "Mã MH";
-                dgvDiem.Columns["TenMon"].HeaderText = "Tên Môn Học";
+                dgvDiem.Columns["MaMH"].HeaderText = "Mã MH";
+                dgvDiem.Columns["TenMH"].HeaderText = "Tên Môn Học";
                 dgvDiem.Columns["SoTinChi"].HeaderText = "TC";
                 dgvDiem.Columns["HocKy"].HeaderText = "HK";
                 dgvDiem.Columns["NamHoc"].HeaderText = "Năm Học";
 
-                dgvDiem.Columns["DiemGiuaKy"].HeaderText = "Giữa Kỳ";
-                dgvDiem.Columns["DiemCuoiKy"].HeaderText = "Cuối Kỳ";
+                dgvDiem.Columns["DiemGK"].HeaderText = "Giữa Kỳ";
+                dgvDiem.Columns["DiemCK"].HeaderText = "Cuối Kỳ";
 
-                dgvDiem.Columns["DiemTongKet"].HeaderText = "Tổng Kết";
+                dgvDiem.Columns["DiemTK"].HeaderText = "Tổng Kết";
                 dgvDiem.Columns["DiemChu"].HeaderText = "Điểm Chữ";
 
-                dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.BackColor = Color.LightYellow;
-                dgvDiem.Columns["DiemTongKet"].DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+                dgvDiem.Columns["DiemTK"].DefaultCellStyle.BackColor = Color.LightYellow;
+                dgvDiem.Columns["DiemTK"].DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
 
                 TinhGPA(dt);
             }
@@ -198,9 +198,9 @@ namespace QLDiemSV_GUI
             int tongTinChi = 0;
             foreach (DataRow row in dt.Rows)
             {
-                if (row["DiemTongKet"] != DBNull.Value)
+                if (row["DiemTK"] != DBNull.Value)
                 {
-                    double diemTK = Convert.ToDouble(row["DiemTongKet"]);
+                    double diemTK = Convert.ToDouble(row["DiemTK"]);
                     int tinChi = Convert.ToInt32(row["SoTinChi"]);
                     double diemHe4 = 0;
                     if (diemTK >= 8.5) diemHe4 = 4.0;

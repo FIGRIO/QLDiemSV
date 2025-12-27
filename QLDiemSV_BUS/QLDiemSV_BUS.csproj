@@ -89,6 +89,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\QLDiemSV_DAL\QLDiemSV_DAL.csproj">
       <Project>{57327538-5abe-4713-b89f-915e57a12efe}</Project>
       <Name>QLDiemSV_DAL</Name>
@@ -97,9 +100,6 @@
       <Project>{806b2166-5666-487e-9f04-45120e7f2aa8}</Project>
       <Name>QLDiemSV_DTO</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
