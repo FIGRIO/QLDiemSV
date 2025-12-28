@@ -180,15 +180,54 @@ namespace QLDiemSV_GUI
         private void FilterDSLop(object sender, EventArgs e)
         {
             if (_dtLopGoc == null) return;
+
+            // --- BƯỚC 1: LƯU GIÁ TRỊ CŨ ---
+            string oldSelectedValue = "";
+            if (cboLopHP.SelectedValue != null)
+            {
+                oldSelectedValue = cboLopHP.SelectedValue.ToString();
+            }
+
             string filter = "1=1";
             if (cboNamHoc.SelectedIndex > 0) filter += string.Format(" AND NamHoc = '{0}'", cboNamHoc.SelectedItem);
             if (cboHocKy.SelectedIndex > 0) filter += string.Format(" AND HocKy = '{0}'", cboHocKy.SelectedItem);
 
             DataView dv = new DataView(_dtLopGoc);
             dv.RowFilter = filter;
+
+            // Ngắt sự kiện để tránh trigger lung tung khi gán DataSource
+            cboLopHP.SelectedIndexChanged -= CboLopHP_SelectedIndexChanged;
+
             cboLopHP.DataSource = dv;
             cboLopHP.DisplayMember = "MaLHP";
             cboLopHP.ValueMember = "MaLHP";
+
+            // --- BƯỚC 2: KHÔI PHỤC GIÁ TRỊ CŨ (NẾU CÓ) ---
+            // Kiểm tra xem giá trị cũ có còn tồn tại trong danh sách mới không
+            bool exists = false;
+            foreach (DataRowView item in dv)
+            {
+                if (item["MaLHP"].ToString() == oldSelectedValue)
+                {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (exists)
+            {
+                cboLopHP.SelectedValue = oldSelectedValue;
+            }
+            else if (cboLopHP.Items.Count > 0)
+            {
+                cboLopHP.SelectedIndex = 0; // Nếu không còn thì chọn cái đầu
+            }
+
+            // Bật lại sự kiện
+            cboLopHP.SelectedIndexChanged += CboLopHP_SelectedIndexChanged;
+
+            // Gọi thủ công 1 lần để load điểm
+            CboLopHP_SelectedIndexChanged(null, null);
 
             if (dv.Count == 0) { dgvDiem.DataSource = null; lblTyLe.Text = "(Không có lớp nào)"; }
         }
@@ -291,5 +330,6 @@ namespace QLDiemSV_GUI
             }
             MessageBox.Show("Đã lưu thành công " + count + " sinh viên!", "Thông báo");
         }
+
     }
 }

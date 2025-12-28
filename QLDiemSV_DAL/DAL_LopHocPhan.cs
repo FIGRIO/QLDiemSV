@@ -7,16 +7,26 @@ namespace QLDiemSV_DAL
     {
         public DataTable GetDS()
         {
-            // SỬA: 
-            // 1. Join MonHoc on l.MaMon = m.MaMH (Vì MonHoc dùng MaMH)
-            // 2. TenMon -> TenMH
-            // 3. TyLeQuaTrinh -> TyLeQT, TyLeCuoiKy -> TyLeCK
+            // SỬA CÂU SQL: Dùng AS để đổi tên cột DB (ngắn) sang tên Code (dài)
             string sql = @"
-                SELECT l.MaLHP, l.MaMon, m.TenMH, l.MaGV, g.HoTen, l.HocKy, l.NamHoc, l.TyLeQT, l.TyLeCK,
-                       l.Thu, l.TietBD, l.SoTiet, l.Phong
-                FROM LopHocPhan l
-                JOIN MonHoc m ON l.MaMon = m.MaMH 
-                JOIN GiangVien g ON l.MaGV = g.MaGV";
+        SELECT 
+            l.MaLHP, 
+            l.MaMon, 
+            m.TenMH as TenMon,           -- DB là TenMH, Code cần TenMon
+            l.MaGV, 
+            g.HoTen, 
+            l.HocKy, 
+            l.NamHoc, 
+            l.TyLeQT as TyLeQuaTrinh,    -- DB là TyLeQT, Code cần TyLeQuaTrinh
+            l.TyLeCK as TyLeCuoiKy,      -- DB là TyLeCK, Code cần TyLeCuoiKy
+            l.Thu, 
+            l.TietBD as TietBatDau,      -- DB là TietBD, Code cần TietBatDau
+            l.SoTiet, 
+            l.Phong as PhongHoc          -- DB là Phong, Code cần PhongHoc
+        FROM LopHocPhan l
+        JOIN MonHoc m ON l.MaMon = m.MaMH
+        JOIN GiangVien g ON l.MaGV = g.MaGV";
+
             return GetDataTable(sql);
         }
 

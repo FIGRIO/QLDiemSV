@@ -96,6 +96,7 @@ namespace QLDiemSV_GUI
             lblHeader = new Label { Text = "  ➤  QUẢN LÝ LỚP HỌC PHẦN", Font = new Font("Segoe UI", 14, FontStyle.Bold), ForeColor = Color.FromArgb(12, 59, 124), AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(10, 0, 0, 0) };
             pnlHeader.Controls.Add(lblHeader);
             this.Controls.Add(pnlHeader);
+            dgvLopHP.CellClick += DgvLopHP_CellClick;
         }
 
         private void CreateLabel(Panel p, string text, int x, int y) { p.Controls.Add(new Label { Text = text, Location = new Point(x, y), AutoSize = true, Font = new Font("Segoe UI", 10) }); }
@@ -125,11 +126,256 @@ namespace QLDiemSV_GUI
             cboGiangVien.DataSource = busGV.GetDS(); cboGiangVien.DisplayMember = "HoTen"; cboGiangVien.ValueMember = "MaGV";
         }
         private void LoadData() => dgvLopHP.DataSource = busLHP.GetDS();
-        private void ResetControl() { txtMaLHP.Clear(); txtMaLHP.Enabled = true; cboMonHoc.SelectedIndex = 0; cboGiangVien.SelectedIndex = 0; cboHocKy.SelectedIndex = 0; txtNamHoc.Text = "2024-2025"; numTLQT.Value = 30; numTLCK.Value = 70; cboThu.SelectedIndex = 0; numTietBD.Value = 1; numSoTiet.Value = 3; txtPhong.Clear(); txtTimKiem.Text = PLACEHOLDER_TEXT; txtTimKiem.ForeColor = Color.Gray; LoadData(); }
-        private void DgvLopHP_CellClick(object sender, DataGridViewCellEventArgs e) { if (e.RowIndex >= 0) { var r = dgvLopHP.Rows[e.RowIndex]; try { txtMaLHP.Text = r.Cells["MaLHP"].Value.ToString(); txtMaLHP.Enabled = false; cboMonHoc.SelectedValue = r.Cells["MaMH"].Value.ToString(); cboGiangVien.SelectedValue = r.Cells["MaGV"].Value.ToString(); cboHocKy.Text = r.Cells["HocKy"].Value.ToString(); txtNamHoc.Text = r.Cells["NamHoc"].Value.ToString(); numTLQT.Value = Convert.ToDecimal(r.Cells["TyLeQuaTrinh"].Value); numTLCK.Value = Convert.ToDecimal(r.Cells["TyLeCK"].Value); if (dgvLopHP.Columns.Contains("Thu") && r.Cells["Thu"].Value != DBNull.Value) { int thu = Convert.ToInt32(r.Cells["Thu"].Value); cboThu.Text = (thu == 8) ? "CN" : thu.ToString(); } if (dgvLopHP.Columns.Contains("TietBD") && r.Cells["TietBD"].Value != DBNull.Value) numTietBD.Value = Convert.ToDecimal(r.Cells["TietBD"].Value); if (dgvLopHP.Columns.Contains("SoTiet") && r.Cells["SoTiet"].Value != DBNull.Value) numSoTiet.Value = Convert.ToDecimal(r.Cells["SoTiet"].Value); if (dgvLopHP.Columns.Contains("Phong") && r.Cells["Phong"].Value != DBNull.Value) txtPhong.Text = r.Cells["Phong"].Value.ToString(); } catch { ResetControl(); } } }
+        private void ResetControl()
+        {
+            // Quan trọng: Phải mở khóa ô Mã Lớp để nhập mã mới
+            txtMaLHP.Clear();
+            txtMaLHP.Enabled = true; // <--- Dòng này quan trọng nhất
+            txtMaLHP.Focus();
+
+            // Reset các ô khác về mặc định
+            cboMonHoc.SelectedIndex = (cboMonHoc.Items.Count > 0) ? 0 : -1;
+            cboGiangVien.SelectedIndex = (cboGiangVien.Items.Count > 0) ? 0 : -1;
+            cboHocKy.SelectedIndex = 0;
+            txtNamHoc.Text = "2024-2025";
+            numTLQT.Value = 30;
+            numTLCK.Value = 70;
+
+            // Reset lịch học
+            cboThu.SelectedIndex = 0;
+            numTietBD.Value = 1;
+            numSoTiet.Value = 3;
+            txtPhong.Clear();
+
+            txtTimKiem.Text = PLACEHOLDER_TEXT;
+            txtTimKiem.ForeColor = Color.Gray;
+
+            LoadData(); // Tải lại bảng
+        }
+        private void DgvLopHP_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.RowIndex < dgvLopHP.Rows.Count)
+            {
+                try
+                {
+                    DataGridViewRow r = dgvLopHP.Rows[e.RowIndex];
+
+                    // 1. Mã LHP & Các khóa ngoại
+                    txtMaLHP.Text = r.Cells["MaLHP"].Value?.ToString();
+                    txtMaLHP.Enabled = false; // Khóa lại không cho sửa mã
+
+                    if (r.Cells["MaMon"].Value != null)
+                        cboMonHoc.SelectedValue = r.Cells["MaMon"].Value.ToString();
+
+                    if (r.Cells["MaGV"].Value != null)
+                        cboGiangVien.SelectedValue = r.Cells["MaGV"].Value.ToString();
+
+                    // 2. Học kỳ & Năm học
+                    cboHocKy.Text = r.Cells["HocKy"].Value?.ToString();
+                    txtNamHoc.Text = r.Cells["NamHoc"].Value?.ToString();
+
+                    // 3. Tỷ lệ điểm (Lấy theo tên alias TyLeQuaTrinh đã đặt ở DAL)
+                    if (r.Cells["TyLeQuaTrinh"].Value != DBNull.Value)
+                        numTLQT.Value = Convert.ToDecimal(r.Cells["TyLeQuaTrinh"].Value);
+
+                    if (r.Cells["TyLeCuoiKy"].Value != DBNull.Value)
+                        numTLCK.Value = Convert.ToDecimal(r.Cells["TyLeCuoiKy"].Value);
+
+                    // 4. Lịch học (Lấy theo tên alias)
+                    if (r.Cells["Thu"].Value != DBNull.Value)
+                    {
+                        int thu = Convert.ToInt32(r.Cells["Thu"].Value);
+                        cboThu.Text = (thu == 8) ? "CN" : thu.ToString();
+                    }
+
+                    if (r.Cells["TietBatDau"].Value != DBNull.Value) // Alias TietBatDau
+                        numTietBD.Value = Convert.ToDecimal(r.Cells["TietBatDau"].Value);
+
+                    if (r.Cells["SoTiet"].Value != DBNull.Value)
+                        numSoTiet.Value = Convert.ToDecimal(r.Cells["SoTiet"].Value);
+
+                    if (r.Cells["PhongHoc"].Value != DBNull.Value) // Alias PhongHoc
+                        txtPhong.Text = r.Cells["PhongHoc"].Value.ToString();
+                }
+                catch (Exception ex)
+                {
+                    // Reset nếu lỗi để tránh crash
+                    // ResetControl();
+                    // MessageBox.Show("Lỗi chọn dòng: " + ex.Message);
+                }
+            }
+        }
         private void BtnTimKiem_Click(object sender, EventArgs e) { string kw = txtTimKiem.Text.Trim(); if (string.IsNullOrEmpty(kw) || kw == PLACEHOLDER_TEXT) LoadData(); else dgvLopHP.DataSource = busLHP.TimKiem(kw); }
-        private void BtnThem_Click(object sender, EventArgs e) { if (string.IsNullOrWhiteSpace(txtMaLHP.Text)) return; int thu = cboThu.Text == "CN" ? 8 : int.Parse(cboThu.Text); DTO_LopHocPhan lhp = new DTO_LopHocPhan(txtMaLHP.Text, cboMonHoc.SelectedValue.ToString(), cboGiangVien.SelectedValue.ToString(), cboHocKy.Text, txtNamHoc.Text, (float)numTLQT.Value, (float)numTLCK.Value, thu, (int)numTietBD.Value, (int)numSoTiet.Value, txtPhong.Text); if (busLHP.Them(lhp)) { MessageBox.Show("Thêm thành công!"); ResetControl(); } else MessageBox.Show("Lỗi!"); }
-        private void BtnSua_Click(object sender, EventArgs e) { if (txtMaLHP.Enabled) return; int thu = cboThu.Text == "CN" ? 8 : int.Parse(cboThu.Text); DTO_LopHocPhan lhp = new DTO_LopHocPhan(txtMaLHP.Text, cboMonHoc.SelectedValue.ToString(), cboGiangVien.SelectedValue.ToString(), cboHocKy.Text, txtNamHoc.Text, (float)numTLQT.Value, (float)numTLCK.Value, thu, (int)numTietBD.Value, (int)numSoTiet.Value, txtPhong.Text); if (busLHP.Sua(lhp)) { MessageBox.Show("Cập nhật thành công!"); ResetControl(); } else MessageBox.Show("Lỗi!"); }
-        private void BtnXoa_Click(object sender, EventArgs e) { if (txtMaLHP.Enabled) return; if (MessageBox.Show("Xóa lớp này?", "Cảnh báo", MessageBoxButtons.YesNo) == DialogResult.Yes) if (busLHP.Xoa(txtMaLHP.Text)) { MessageBox.Show("Đã xóa!"); ResetControl(); } else MessageBox.Show("Lỗi!"); }
+        private void BtnThem_Click(object sender, EventArgs e)
+        {
+            // 1. Kiểm tra nhập liệu trống
+            if (!CheckInput()) return;
+
+            string maMoi = txtMaLHP.Text.Trim();
+
+            // 2. KIỂM TRA TRÙNG MÃ (QUAN TRỌNG)
+            // Kiểm tra trong DataGridView xem mã này đã có chưa
+            DataTable dt = (DataTable)dgvLopHP.DataSource;
+            DataRow[] foundRows = dt.Select($"MaLHP = '{maMoi}'");
+
+            if (foundRows.Length > 0)
+            {
+                MessageBox.Show($"Mã lớp '{maMoi}' đã tồn tại rồi! Vui lòng nhập mã khác hoặc nhấn nút 'Làm mới' để nhập lại.",
+                                "Trùng mã", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtMaLHP.Focus();
+                return; // Dừng lại, không thêm nữa
+            }
+
+            // 3. Nếu không trùng thì mới thực hiện Thêm
+            int thu = cboThu.Text == "CN" ? 8 : int.Parse(cboThu.Text);
+
+            DTO_LopHocPhan lhp = new DTO_LopHocPhan(
+                maMoi,
+                cboMonHoc.SelectedValue.ToString(),
+                cboGiangVien.SelectedValue.ToString(),
+                cboHocKy.Text,
+                txtNamHoc.Text,
+                (float)numTLQT.Value,
+                (float)numTLCK.Value,
+                thu,
+                (int)numTietBD.Value,
+                (int)numSoTiet.Value,
+                txtPhong.Text
+            );
+
+            if (busLHP.Them(lhp))
+            {
+                MessageBox.Show("Thêm thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ResetControl(); // Xóa trắng ô nhập để nhập tiếp
+            }
+            else
+            {
+                MessageBox.Show("Thêm thất bại! Vui lòng kiểm tra lại thông tin.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        // Hàm kiểm tra nhập liệu bắt buộc
+        private bool CheckInput()
+        {
+            // Kiểm tra Mã Lớp Học Phần
+            if (string.IsNullOrWhiteSpace(txtMaLHP.Text))
+            {
+                MessageBox.Show("Vui lòng nhập Mã lớp học phần!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtMaLHP.Focus();
+                return false;
+            }
+
+            // Kiểm tra Môn Học (ComboBox)
+            if (cboMonHoc.SelectedIndex < 0 || cboMonHoc.SelectedValue == null)
+            {
+                MessageBox.Show("Vui lòng chọn Môn học!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                cboMonHoc.Focus();
+                return false;
+            }
+
+            // Kiểm tra Giảng Viên (ComboBox)
+            if (cboGiangVien.SelectedIndex < 0 || cboGiangVien.SelectedValue == null)
+            {
+                MessageBox.Show("Vui lòng chọn Giảng viên!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                cboGiangVien.Focus();
+                return false;
+            }
+
+            // Kiểm tra Năm Học
+            if (string.IsNullOrWhiteSpace(txtNamHoc.Text))
+            {
+                MessageBox.Show("Vui lòng nhập Năm học!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtNamHoc.Focus();
+                return false;
+            }
+
+            // Kiểm tra tỷ lệ điểm (Tổng phải là 100% hoặc 1.0 tùy quy ước, ở đây chỉ check nhập số)
+            // NumericUpDown (numTLQT, numTLCK) mặc định luôn có giá trị số nên không cần check null/empty
+
+            return true; // Tất cả ok
+        }
+        private void BtnSua_Click(object sender, EventArgs e)
+        {
+            // 1. Kiểm tra xem đã chọn lớp để sửa chưa (Mã lớp không được trống)
+            if (string.IsNullOrWhiteSpace(txtMaLHP.Text))
+            {
+                MessageBox.Show("Vui lòng chọn lớp học phần cần sửa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 2. Kiểm tra các ô nhập liệu khác
+            if (!CheckInput()) return;
+
+            // 3. Hỏi xác nhận
+            if (MessageBox.Show($"Bạn có chắc muốn cập nhật thông tin cho lớp {txtMaLHP.Text}?", "Xác nhận sửa", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                try
+                {
+                    // Chuyển đổi dữ liệu Thứ
+                    int thu = cboThu.Text == "CN" ? 8 : int.Parse(cboThu.Text);
+
+                    // Tạo đối tượng DTO với thông tin mới
+                    DTO_LopHocPhan lhp = new DTO_LopHocPhan(
+                        txtMaLHP.Text.Trim(), // Mã lớp (Khóa chính, dùng để tìm dòng cần sửa)
+                        cboMonHoc.SelectedValue.ToString(),
+                        cboGiangVien.SelectedValue.ToString(),
+                        cboHocKy.Text,
+                        txtNamHoc.Text,
+                        (float)numTLQT.Value,
+                        (float)numTLCK.Value,
+                        thu,
+                        (int)numTietBD.Value,
+                        (int)numSoTiet.Value,
+                        txtPhong.Text
+                    );
+
+                    // Gọi BUS để sửa
+                    if (busLHP.Sua(lhp))
+                    {
+                        MessageBox.Show("Cập nhật thành công!", "Thông báo");
+                        ResetControl(); // Tải lại bảng và xóa trắng ô
+                    }
+                    else
+                    {
+                        MessageBox.Show("Cập nhật thất bại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi hệ thống: " + ex.Message);
+                }
+            }
+        }
+        private void BtnXoa_Click(object sender, EventArgs e)
+        {
+            // 1. Kiểm tra đã chọn lớp chưa
+            if (string.IsNullOrWhiteSpace(txtMaLHP.Text))
+            {
+                MessageBox.Show("Vui lòng chọn lớp học phần cần xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 2. Hỏi xác nhận (Rất quan trọng khi xóa)
+            if (MessageBox.Show($"Bạn có chắc chắn muốn xóa lớp {txtMaLHP.Text} không?\nDữ liệu điểm liên quan cũng có thể bị mất!",
+                "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+            {
+                try
+                {
+                    // Gọi BUS để xóa
+                    if (busLHP.Xoa(txtMaLHP.Text.Trim()))
+                    {
+                        MessageBox.Show("Xóa thành công!", "Thông báo");
+                        ResetControl(); // Tải lại bảng
+                    }
+                    else
+                    {
+                        MessageBox.Show("Xóa thất bại! Có thể lớp này đang chứa bảng điểm của sinh viên.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Không thể xóa. Lỗi: " + ex.Message);
+                }
+            }
+        }
     }
 }

@@ -32,9 +32,7 @@ namespace QLDiemSV_GUI
             this.BackColor = Color.FromArgb(242, 244, 248);
             this.FormBorderStyle = FormBorderStyle.None;
 
-            // =========================================================================
-            // 1. TABLE (Lưới điểm - Add trước để nằm dưới)
-            // =========================================================================
+            // 1. TABLE (Lưới điểm)
             pnlTable = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
             dgvDiem = new DataGridView
             {
@@ -55,92 +53,74 @@ namespace QLDiemSV_GUI
             pnlTable.Controls.Add(dgvDiem);
             this.Controls.Add(pnlTable);
 
-            // =========================================================================
-            // 2. FOOTER (Điểm GPA)
-            // =========================================================================
+            // 2. FOOTER
             pnlFooter = new Panel { Dock = DockStyle.Bottom, Height = 60, BackColor = Color.White };
             pnlFooter.Paint += (s, e) => { e.Graphics.DrawLine(Pens.LightGray, 0, 0, pnlFooter.Width, 0); };
-
-            lblGPA = new Label
-            {
-                Text = "Điểm trung bình tích lũy (GPA): ...",
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                ForeColor = Color.Red,
-                AutoSize = true,
-                Location = new Point(20, 20)
-            };
+            lblGPA = new Label { Text = "Điểm trung bình tích lũy (GPA): ...", Font = new Font("Segoe UI", 12, FontStyle.Bold), ForeColor = Color.Red, AutoSize = true, Location = new Point(20, 20) };
             pnlFooter.Controls.Add(lblGPA);
             this.Controls.Add(pnlFooter);
 
-            // =========================================================================
-            // 3. HEADER (SỬA LẠI ĐỂ HIỆN NÚT)
-            // =========================================================================
+            // 3. HEADER (SỬA LỖI HIỂN THỊ NÚT TẠI ĐÂY)
             pnlHeader = new Panel { Dock = DockStyle.Top, Height = 50, BackColor = Color.FromArgb(242, 244, 248) };
             pnlHeader.Paint += (s, e) => { e.Graphics.DrawLine(new Pen(Color.FromArgb(12, 59, 124), 2), 15, 40, 250, 40); };
 
-            // --- SỬA LỖI Ở ĐÂY: Dùng Dock.Left thay vì Fill ---
+            // SỬA: Dock = Left (Thay vì Fill)
             lblHeader = new Label
             {
                 Text = "  ➤  KẾT QUẢ HỌC TẬP CÁ NHÂN",
                 Font = new Font("Segoe UI", 14, FontStyle.Bold),
                 ForeColor = Color.FromArgb(12, 59, 124),
                 AutoSize = true,
-                Dock = DockStyle.Left, // Chỉ chiếm phần bên trái, chừa chỗ cho nút
+                Dock = DockStyle.Left,
                 TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(10, 13, 0, 0) // Căn chỉnh lề trên để chữ cân đối
+                Padding = new Padding(10, 0, 0, 0)
             };
             pnlHeader.Controls.Add(lblHeader);
 
-            // Tính vị trí nút dựa trên chiều rộng form
-            int btnY = 10;
-            int btnW = 80;
-            int margin = 15;
-            int rightPos = this.ClientSize.Width - margin;
-
-            // --- NÚT PDF (Ngoài cùng bên phải) ---
-            btnPdf = new Button
-            {
-                Text = "PDF",
-                Size = new Size(btnW, 30),
-                Location = new Point(rightPos - btnW, btnY),
-                BackColor = Color.FromArgb(220, 53, 69),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                Cursor = Cursors.Hand,
-                Anchor = AnchorStyles.Top | AnchorStyles.Right // Neo vào góc phải để không bị trôi khi phóng to
-            };
-            btnPdf.FlatAppearance.BorderSize = 0;
-            btnPdf.Click += (s, e) => XuatFile("PDF");
-            pnlHeader.Controls.Add(btnPdf);
-
-            // --- NÚT EXCEL (Bên trái nút PDF) ---
+            // THÊM NÚT EXCEL
             btnExcel = new Button
             {
                 Text = "Excel",
-                Size = new Size(btnW, 30),
-                Location = new Point(rightPos - btnW - 10 - btnW, btnY),
-                BackColor = Color.FromArgb(40, 167, 69),
+                Location = new Point(800, 10), // Vị trí cố định
+                Size = new Size(80, 30),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right, // Neo góc phải
+                BackColor = Color.Green,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                Cursor = Cursors.Hand,
-                Anchor = AnchorStyles.Top | AnchorStyles.Right
+                Cursor = Cursors.Hand
             };
             btnExcel.FlatAppearance.BorderSize = 0;
             btnExcel.Click += (s, e) => XuatFile("Excel");
             pnlHeader.Controls.Add(btnExcel);
 
-            // Đảm bảo nút nằm trên cùng (không bị cái gì đè)
-            btnPdf.BringToFront();
+            // THÊM NÚT PDF
+            btnPdf = new Button
+            {
+                Text = "PDF",
+                Location = new Point(890, 10),
+                Size = new Size(80, 30),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right, // Neo góc phải
+                BackColor = Color.Red,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                Cursor = Cursors.Hand
+            };
+            btnPdf.FlatAppearance.BorderSize = 0;
+            btnPdf.Click += (s, e) => XuatFile("PDF");
+            pnlHeader.Controls.Add(btnPdf);
+
+            // QUAN TRỌNG: Đưa nút lên trên cùng
             btnExcel.BringToFront();
+            btnPdf.BringToFront();
 
             this.Controls.Add(pnlHeader);
 
-            // Sắp xếp lớp layout chính
-            pnlHeader.SendToBack(); // Header nằm trên cùng màn hình
-            pnlFooter.SendToBack(); // Footer nằm dưới cùng màn hình
-            pnlTable.BringToFront(); // Table fill vào giữa
+            // Sắp xếp thứ tự hiển thị panel
+            pnlHeader.SendToBack();
+            pnlFooter.SendToBack();
+            pnlTable.BringToFront();
         }
 
         private void XuatFile(string loaiFile)

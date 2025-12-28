@@ -175,9 +175,18 @@ namespace QLDiemSV_GUI
         private void FilterData(object sender, EventArgs e)
         {
             if (_dtGoc == null) return;
+
             string filter = "";
             if (cboNamHoc.SelectedIndex > 0) filter += string.Format("NamHoc = '{0}'", cboNamHoc.SelectedItem);
-            if (cboHocKy.SelectedIndex > 0) { if (filter.Length > 0) filter += " AND "; filter += string.Format("HocKy = '{0}'", cboHocKy.SelectedItem); }
+
+            if (cboHocKy.SelectedIndex > 0)
+            {
+                if (filter.Length > 0) filter += " AND ";
+                filter += string.Format("HocKy = '{0}'", cboHocKy.SelectedItem);
+            }
+
+            // Lưu trạng thái cuộn của Grid (nếu muốn xịn hơn)
+            // Nhưng với GridView lọc bằng RowFilter thì nó tự giữ dòng đang chọn nếu dòng đó ko bị ẩn
             _dtGoc.DefaultView.RowFilter = filter;
             UpdateLabelCount();
         }

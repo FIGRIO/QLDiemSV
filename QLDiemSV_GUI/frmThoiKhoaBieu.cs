@@ -107,6 +107,8 @@ namespace QLDiemSV_GUI
             pnlHeader.SendToBack();
             pnlFilter.SendToBack();
             pnlContent.BringToFront();
+            cboNamHoc.SelectedIndexChanged += (s, e) => VeLichHoc();
+            cboHocKy.SelectedIndexChanged += (s, e) => VeLichHoc();
         }
 
         private void LoadComboboxData()
