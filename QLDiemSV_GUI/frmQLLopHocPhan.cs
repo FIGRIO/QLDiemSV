@@ -128,29 +128,12 @@ namespace QLDiemSV_GUI
         private void LoadData() => dgvLopHP.DataSource = busLHP.GetDS();
         private void ResetControl()
         {
-            // Quan trọng: Phải mở khóa ô Mã Lớp để nhập mã mới
             txtMaLHP.Clear();
-            txtMaLHP.Enabled = true; // <--- Dòng này quan trọng nhất
+            txtMaLHP.Enabled = true; // QUAN TRỌNG: Cho phép nhập mã mới
             txtMaLHP.Focus();
 
-            // Reset các ô khác về mặc định
-            cboMonHoc.SelectedIndex = (cboMonHoc.Items.Count > 0) ? 0 : -1;
-            cboGiangVien.SelectedIndex = (cboGiangVien.Items.Count > 0) ? 0 : -1;
-            cboHocKy.SelectedIndex = 0;
-            txtNamHoc.Text = "2024-2025";
-            numTLQT.Value = 30;
-            numTLCK.Value = 70;
-
-            // Reset lịch học
-            cboThu.SelectedIndex = 0;
-            numTietBD.Value = 1;
-            numSoTiet.Value = 3;
-            txtPhong.Clear();
-
-            txtTimKiem.Text = PLACEHOLDER_TEXT;
-            txtTimKiem.ForeColor = Color.Gray;
-
-            LoadData(); // Tải lại bảng
+            // Reset các ô khác...
+            LoadData();
         }
         private void DgvLopHP_CellClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -208,27 +191,21 @@ namespace QLDiemSV_GUI
         private void BtnTimKiem_Click(object sender, EventArgs e) { string kw = txtTimKiem.Text.Trim(); if (string.IsNullOrEmpty(kw) || kw == PLACEHOLDER_TEXT) LoadData(); else dgvLopHP.DataSource = busLHP.TimKiem(kw); }
         private void BtnThem_Click(object sender, EventArgs e)
         {
-            // 1. Kiểm tra nhập liệu trống
             if (!CheckInput()) return;
 
+            // KIỂM TRA TRÙNG MÃ TRƯỚC KHI THÊM
             string maMoi = txtMaLHP.Text.Trim();
-
-            // 2. KIỂM TRA TRÙNG MÃ (QUAN TRỌNG)
-            // Kiểm tra trong DataGridView xem mã này đã có chưa
             DataTable dt = (DataTable)dgvLopHP.DataSource;
-            DataRow[] foundRows = dt.Select($"MaLHP = '{maMoi}'");
 
-            if (foundRows.Length > 0)
+            // Nếu tìm thấy mã này trong bảng rồi thì báo lỗi
+            if (dt.Select($"MaLHP = '{maMoi}'").Length > 0)
             {
-                MessageBox.Show($"Mã lớp '{maMoi}' đã tồn tại rồi! Vui lòng nhập mã khác hoặc nhấn nút 'Làm mới' để nhập lại.",
-                                "Trùng mã", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtMaLHP.Focus();
-                return; // Dừng lại, không thêm nữa
+                MessageBox.Show($"Mã lớp '{maMoi}' đã tồn tại! Vui lòng nhấn nút 'Làm mới' và nhập mã khác.", "Trùng mã", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
 
-            // 3. Nếu không trùng thì mới thực hiện Thêm
+            // Code thêm cũ của bạn...
             int thu = cboThu.Text == "CN" ? 8 : int.Parse(cboThu.Text);
-
             DTO_LopHocPhan lhp = new DTO_LopHocPhan(
                 maMoi,
                 cboMonHoc.SelectedValue.ToString(),
@@ -245,53 +222,30 @@ namespace QLDiemSV_GUI
 
             if (busLHP.Them(lhp))
             {
-                MessageBox.Show("Thêm thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                ResetControl(); // Xóa trắng ô nhập để nhập tiếp
+                MessageBox.Show("Thêm thành công!");
+                ResetControl();
             }
             else
             {
-                MessageBox.Show("Thêm thất bại! Vui lòng kiểm tra lại thông tin.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Thêm thất bại!");
             }
         }
-        // Hàm kiểm tra nhập liệu bắt buộc
+        // Hàm kiểm tra nhập liệu
         private bool CheckInput()
         {
-            // Kiểm tra Mã Lớp Học Phần
             if (string.IsNullOrWhiteSpace(txtMaLHP.Text))
             {
                 MessageBox.Show("Vui lòng nhập Mã lớp học phần!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtMaLHP.Focus();
                 return false;
             }
-
-            // Kiểm tra Môn Học (ComboBox)
-            if (cboMonHoc.SelectedIndex < 0 || cboMonHoc.SelectedValue == null)
-            {
-                MessageBox.Show("Vui lòng chọn Môn học!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                cboMonHoc.Focus();
-                return false;
-            }
-
-            // Kiểm tra Giảng Viên (ComboBox)
-            if (cboGiangVien.SelectedIndex < 0 || cboGiangVien.SelectedValue == null)
-            {
-                MessageBox.Show("Vui lòng chọn Giảng viên!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                cboGiangVien.Focus();
-                return false;
-            }
-
-            // Kiểm tra Năm Học
             if (string.IsNullOrWhiteSpace(txtNamHoc.Text))
             {
                 MessageBox.Show("Vui lòng nhập Năm học!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtNamHoc.Focus();
                 return false;
             }
-
-            // Kiểm tra tỷ lệ điểm (Tổng phải là 100% hoặc 1.0 tùy quy ước, ở đây chỉ check nhập số)
-            // NumericUpDown (numTLQT, numTLCK) mặc định luôn có giá trị số nên không cần check null/empty
-
-            return true; // Tất cả ok
+            return true;
         }
         private void BtnSua_Click(object sender, EventArgs e)
         {

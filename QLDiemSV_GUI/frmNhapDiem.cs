@@ -234,18 +234,32 @@ namespace QLDiemSV_GUI
 
         private void CboLopHP_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (cboLopHP.SelectedValue == null) return;
-            string maLHP = cboLopHP.SelectedValue.ToString();
-            DataRowView row = (DataRowView)cboLopHP.SelectedItem;
-            if (row["TyLeQT"] != DBNull.Value && row["TyLeCK"] != DBNull.Value)
+            if (cboLopHP.SelectedIndex == -1 || cboLopHP.SelectedValue == null) return;
+
+            // Lấy dòng dữ liệu đang chọn trong ComboBox
+            DataRowView drv = (DataRowView)cboLopHP.SelectedItem;
+
+            string tlQT = "0";
+            string tlCK = "0";
+
+            // --- SỬA Ở ĐÂY ---
+            // Kiểm tra xem trong bảng có cột "TyLeQuaTrinh" (tên mới) không
+            if (drv.DataView.Table.Columns.Contains("TyLeQuaTrinh"))
             {
-                float rawQT = Convert.ToSingle(row["TyLeQT"]);
-                float rawCK = Convert.ToSingle(row["TyLeCK"]);
-                _tyLeQT = (rawQT > 1) ? rawQT / 100 : rawQT;
-                _tyLeCK = (rawCK > 1) ? rawCK / 100 : rawCK;
+                tlQT = (Convert.ToDouble(drv["TyLeQuaTrinh"]) * 100).ToString();
+                tlCK = (Convert.ToDouble(drv["TyLeCuoiKy"]) * 100).ToString();
             }
-            lblTyLe.Text = string.Format("(Tỷ lệ QT/CK: {0}% - {1}%)", _tyLeQT * 100, _tyLeCK * 100);
-            LoadBangDiem(maLHP);
+            // Phòng trường hợp DAL chưa cập nhật, kiểm tra tên cũ "TyLeQT"
+            else if (drv.DataView.Table.Columns.Contains("TyLeQT"))
+            {
+                tlQT = (Convert.ToDouble(drv["TyLeQT"]) * 100).ToString();
+                tlCK = (Convert.ToDouble(drv["TyLeCK"]) * 100).ToString();
+            }
+
+            lblTyLe.Text = string.Format("(Tỷ lệ QT/CK: {0}% - {1}%)", tlQT, tlCK);
+
+            // Gọi hàm tải danh sách sinh viên
+            LoadBangDiem(cboLopHP.SelectedValue.ToString());
         }
 
         private void LoadBangDiem(string maLHP)

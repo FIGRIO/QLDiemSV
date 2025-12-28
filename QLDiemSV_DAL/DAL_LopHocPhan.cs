@@ -7,22 +7,16 @@ namespace QLDiemSV_DAL
     {
         public DataTable GetDS()
         {
-            // SỬA CÂU SQL: Dùng AS để đổi tên cột DB (ngắn) sang tên Code (dài)
             string sql = @"
         SELECT 
-            l.MaLHP, 
-            l.MaMon, 
-            m.TenMH as TenMon,           -- DB là TenMH, Code cần TenMon
-            l.MaGV, 
-            g.HoTen, 
-            l.HocKy, 
-            l.NamHoc, 
-            l.TyLeQT as TyLeQuaTrinh,    -- DB là TyLeQT, Code cần TyLeQuaTrinh
-            l.TyLeCK as TyLeCuoiKy,      -- DB là TyLeCK, Code cần TyLeCuoiKy
+            l.MaLHP, l.MaMon, m.TenMH as TenMon, l.MaGV, g.HoTen, 
+            l.HocKy, l.NamHoc, 
+            l.TyLeQT as TyLeQuaTrinh,    -- Phải có dòng này
+            l.TyLeCK as TyLeCuoiKy,      -- Phải có dòng này
             l.Thu, 
-            l.TietBD as TietBatDau,      -- DB là TietBD, Code cần TietBatDau
+            l.TietBD as TietBatDau,      
             l.SoTiet, 
-            l.Phong as PhongHoc          -- DB là Phong, Code cần PhongHoc
+            l.Phong as PhongHoc          
         FROM LopHocPhan l
         JOIN MonHoc m ON l.MaMon = m.MaMH
         JOIN GiangVien g ON l.MaGV = g.MaGV";
