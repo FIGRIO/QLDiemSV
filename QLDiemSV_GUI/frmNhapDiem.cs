@@ -55,6 +55,8 @@ namespace QLDiemSV_GUI
             dgvDiem.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
             dgvDiem.CellValueChanged += DgvDiem_CellValueChanged;
             dgvDiem.EditingControlShowing += DgvDiem_EditingControlShowing;
+            dgvDiem.CellValidating += DgvDiem_CellValidating;
+            dgvDiem.CellEndEdit += DgvDiem_CellEndEdit;
             pnlTable.Controls.Add(dgvDiem);
             this.Controls.Add(pnlTable);
 
@@ -236,29 +238,24 @@ namespace QLDiemSV_GUI
         {
             if (cboLopHP.SelectedIndex == -1 || cboLopHP.SelectedValue == null) return;
 
-            // Lấy dòng dữ liệu đang chọn trong ComboBox
             DataRowView drv = (DataRowView)cboLopHP.SelectedItem;
 
-            string tlQT = "0";
-            string tlCK = "0";
-
-            // --- SỬA Ở ĐÂY ---
-            // Kiểm tra xem trong bảng có cột "TyLeQuaTrinh" (tên mới) không
+            // --- SỬA ĐOẠN NÀY ĐỂ CẬP NHẬT BIẾN TOÀN CỤC ---
             if (drv.DataView.Table.Columns.Contains("TyLeQuaTrinh"))
             {
-                tlQT = (Convert.ToDouble(drv["TyLeQuaTrinh"]) * 100).ToString();
-                tlCK = (Convert.ToDouble(drv["TyLeCuoiKy"]) * 100).ToString();
+                // Cập nhật biến dùng để tính toán (quan trọng)
+                _tyLeQT = Convert.ToSingle(drv["TyLeQuaTrinh"]);
+                _tyLeCK = Convert.ToSingle(drv["TyLeCuoiKy"]);
             }
-            // Phòng trường hợp DAL chưa cập nhật, kiểm tra tên cũ "TyLeQT"
             else if (drv.DataView.Table.Columns.Contains("TyLeQT"))
             {
-                tlQT = (Convert.ToDouble(drv["TyLeQT"]) * 100).ToString();
-                tlCK = (Convert.ToDouble(drv["TyLeCK"]) * 100).ToString();
+                _tyLeQT = Convert.ToSingle(drv["TyLeQT"]);
+                _tyLeCK = Convert.ToSingle(drv["TyLeCK"]);
             }
 
-            lblTyLe.Text = string.Format("(Tỷ lệ QT/CK: {0}% - {1}%)", tlQT, tlCK);
+            // Hiển thị lên Label
+            lblTyLe.Text = string.Format("(Tỷ lệ QT/CK: {0}% - {1}%)", _tyLeQT * 100, _tyLeCK * 100);
 
-            // Gọi hàm tải danh sách sinh viên
             LoadBangDiem(cboLopHP.SelectedValue.ToString());
         }
 
@@ -273,9 +270,21 @@ namespace QLDiemSV_GUI
                     if (dgvDiem.Columns.Contains("MSSV")) dgvDiem.Columns["MSSV"].ReadOnly = true;
                     if (dgvDiem.Columns.Contains("HoTen")) dgvDiem.Columns["HoTen"].ReadOnly = true;
                     if (dgvDiem.Columns.Contains("MaLHP")) dgvDiem.Columns["MaLHP"].Visible = false;
+
                     if (dgvDiem.Columns.Contains("DiemGK")) dgvDiem.Columns["DiemGK"].HeaderText = "Giữa Kỳ";
                     if (dgvDiem.Columns.Contains("DiemCK")) dgvDiem.Columns["DiemCK"].HeaderText = "Cuối Kỳ";
-                    if (dgvDiem.Columns.Contains("DiemTK")) { dgvDiem.Columns["DiemTK"].ReadOnly = true; dgvDiem.Columns["DiemTK"].HeaderText = "Tổng Kết"; dgvDiem.Columns["DiemTK"].DefaultCellStyle.BackColor = Color.LightYellow; dgvDiem.Columns["DiemTK"].DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold); }
+
+                    if (dgvDiem.Columns.Contains("DiemTK"))
+                    {
+                        dgvDiem.Columns["DiemTK"].ReadOnly = true;
+                        dgvDiem.Columns["DiemTK"].HeaderText = "Tổng Kết";
+                        dgvDiem.Columns["DiemTK"].DefaultCellStyle.BackColor = Color.LightYellow;
+                        dgvDiem.Columns["DiemTK"].DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+
+                        // --- THÊM DÒNG NÀY: Định dạng hiển thị 1 số lẻ (ví dụ: 9.1) ---
+                        dgvDiem.Columns["DiemTK"].DefaultCellStyle.Format = "N1";
+                    }
+
                     if (dgvDiem.Columns.Contains("DiemChu")) { dgvDiem.Columns["DiemChu"].ReadOnly = true; dgvDiem.Columns["DiemChu"].HeaderText = "Điểm Chữ"; }
                 }
             }
@@ -307,23 +316,36 @@ namespace QLDiemSV_GUI
             try
             {
                 DataGridViewRow r = dgvDiem.Rows[rowIndex];
-                float gk = r.Cells["DiemGK"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemGK"].Value);
-                float ck = r.Cells["DiemCK"].Value == DBNull.Value ? 0 : Convert.ToSingle(r.Cells["DiemCK"].Value);
-                float diemQuaTrinh = gk;
-                float diemTongKet = (diemQuaTrinh * _tyLeQT) + (ck * _tyLeCK);
-                diemTongKet = (float)Math.Round(diemTongKet, 1);
+
+                // 1. Chuyển đổi sang decimal để tính chính xác
+                decimal gk = r.Cells["DiemGK"].Value == DBNull.Value ? 0 : Convert.ToDecimal(r.Cells["DiemGK"].Value);
+                decimal ck = r.Cells["DiemCK"].Value == DBNull.Value ? 0 : Convert.ToDecimal(r.Cells["DiemCK"].Value);
+
+                // Ép kiểu tỷ lệ từ float (biến toàn cục) sang decimal
+                decimal tlQT = (decimal)_tyLeQT;
+                decimal tlCK = (decimal)_tyLeCK;
+
+                // 2. Tính toán
+                decimal diemTongKet = (gk * tlQT) + (ck * tlCK);
+
+                // 3. Làm tròn chuẩn (0.5 làm tròn lên)
+                diemTongKet = Math.Round(diemTongKet, 1, MidpointRounding.AwayFromZero);
+
+                // Gán giá trị (Dạng số, DataGridView sẽ tự format hiển thị nhờ code ở hàm LoadBangDiem)
                 r.Cells["DiemTK"].Value = diemTongKet;
 
+                // 4. Xếp loại (Thêm 'm' sau số để so sánh decimal)
                 string diemChu = "";
-                if (diemTongKet >= 9.0) diemChu = "A+";
-                else if (diemTongKet >= 8.5) diemChu = "A";
-                else if (diemTongKet >= 8.0) diemChu = "B+";
-                else if (diemTongKet >= 7.0) diemChu = "B";
-                else if (diemTongKet >= 6.5) diemChu = "C+";
-                else if (diemTongKet >= 5.5) diemChu = "C";
-                else if (diemTongKet >= 5.0) diemChu = "D+";
-                else if (diemTongKet >= 4.0) diemChu = "D";
+                if (diemTongKet >= 9.0m) diemChu = "A+";
+                else if (diemTongKet >= 8.5m) diemChu = "A";
+                else if (diemTongKet >= 8.0m) diemChu = "B+";
+                else if (diemTongKet >= 7.0m) diemChu = "B";
+                else if (diemTongKet >= 6.5m) diemChu = "C+";
+                else if (diemTongKet >= 5.5m) diemChu = "C";
+                else if (diemTongKet >= 5.0m) diemChu = "D+";
+                else if (diemTongKet >= 4.0m) diemChu = "D";
                 else diemChu = "F";
+
                 r.Cells["DiemChu"].Value = diemChu;
             }
             catch { }
@@ -343,6 +365,35 @@ namespace QLDiemSV_GUI
                 if (busKQ.CapNhatDiem(maLHP, mssv, gk, ck, tk, chu)) count++;
             }
             MessageBox.Show("Đã lưu thành công " + count + " sinh viên!", "Thông báo");
+        }
+
+        private void DgvDiem_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            string colName = dgvDiem.Columns[e.ColumnIndex].Name;
+            if (colName == "DiemGK" || colName == "DiemCK")
+            {
+                string value = e.FormattedValue.ToString().Trim();
+                if (string.IsNullOrEmpty(value)) return;
+
+                float num;
+                if (!float.TryParse(value, out num))
+                {
+                    e.Cancel = true;
+                    dgvDiem.Rows[e.RowIndex].ErrorText = "Phải nhập số!";
+                    MessageBox.Show("Dữ liệu nhập phải là số!", "Lỗi");
+                }
+                else if (num < 0 || num > 10)
+                {
+                    e.Cancel = true;
+                    dgvDiem.Rows[e.RowIndex].ErrorText = "Điểm 0-10 thôi!";
+                    MessageBox.Show("Điểm chỉ được từ 0 đến 10!", "Lỗi");
+                }
+            }
+        }
+
+        private void DgvDiem_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            dgvDiem.Rows[e.RowIndex].ErrorText = string.Empty;
         }
 
     }
